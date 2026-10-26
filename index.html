@@ -1,55 +1,96 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
     <title>Klok — Flip clock, timer, pomodoro &amp; tear-off calendar</title>
-    <meta name="description" content="Klok is a black-and-white flip clock with a timer, pomodoro, and a paper tear-off calendar. A product of Mark8." />
+    <meta name="description" content="Klok is a black-and-white split-flap departure board: a flip clock, world clocks, timer, pomodoro, and a paper tear-off calendar. A product of Mark8." />
+    <script>
+      /* Set the theme before first paint: saved choice wins, then OS. */
+      (function () {
+        var t = "light";
+        try {
+          var saved = window.localStorage.getItem("klok-theme");
+          if (saved === "dark" || saved === "light") t = saved;
+          else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+        } catch (e) { /* storage unavailable: fall back to light */ }
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-      :root {
-        --bg: #f4f4f4;
-        --surface: #ffffff;
-        --surface-2: #ececec;
-        --ink: #0a0a0a;
-        --ink-soft: #4c4c4c;
-        --ink-faint: #8a8a8a;
-        --line: #d9d9d9;
-        --tile: #111111;
-        --tile-top: #1d1d1d;
-        --tile-ink: #f5f5f5;
-        --tile-line: #000000;
-        --accent: #0a0a0a;
-        --accent-ink: #ffffff;
+      /* ============ Theme tokens — strictly black & white, full inversion ============ */
+      :root[data-theme="light"] {
+        --bg: #ffffff;
+        --bg-soft: #f2f2f2;
+        --ink: #000000;
+        --ink-soft: #3d3d3d;
+        --ink-faint: #767676;
+        --line: #d8d8d8;
+        --line-strong: #000000;
+        --board-bg: #ffffff;
+        --board-edge: #000000;
+        --board-shadow: 0 34px 70px rgba(0,0,0,.22), 0 6px 18px rgba(0,0,0,.14);
+        --strip-bg: #000000;
+        --strip-ink: #ffffff;
+        --tile: #101010;
+        --tile-top: #262626;
+        --tile-bottom: #000000;
+        --tile-ink: #ffffff;
+        --tile-seam: #000000;
+        --tile-shadow: 0 22px 34px rgba(0,0,0,.34), 0 4px 10px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.22);
+        --bolt: #3a3a3a;
+        --bolt-slot: #cfcfcf;
+        --row-hover-bg: #000000;
+        --row-hover-ink: #ffffff;
         --paper: #ffffff;
-        --paper-line: #e2e2e2;
-        --shadow: 0 18px 40px rgba(0,0,0,.10), 0 3px 10px rgba(0,0,0,.08);
-        --radius: 14px;
+        --paper-ink: #000000;
+        --paper-line: #e3e3e3;
+        --btn-bg: #ffffff;
+        --btn-primary-bg: #000000;
+        --btn-primary-ink: #ffffff;
+        --field-bg: #ffffff;
+        --track: #ececec;
+        --fill: #000000;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #000000;
-          --surface: #101010;
-          --surface-2: #1a1a1a;
-          --ink: #f5f5f5;
-          --ink-soft: #bdbdbd;
-          --ink-faint: #7d7d7d;
-          --line: #2b2b2b;
-          --tile: #171717;
-          --tile-top: #232323;
-          --tile-ink: #f5f5f5;
-          --tile-line: #000000;
-          --accent: #f5f5f5;
-          --accent-ink: #0a0a0a;
-          --paper: #111111;
-          --paper-line: #262626;
-          --shadow: 0 18px 40px rgba(0,0,0,.6), 0 3px 10px rgba(0,0,0,.5);
-        }
+      :root[data-theme="dark"] {
+        --bg: #000000;
+        --bg-soft: #0d0d0d;
+        --ink: #ffffff;
+        --ink-soft: #c9c9c9;
+        --ink-faint: #8f8f8f;
+        --line: #2e2e2e;
+        --line-strong: #ffffff;
+        --board-bg: #000000;
+        --board-edge: #ffffff;
+        --board-shadow: 0 34px 70px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.06), 0 6px 18px rgba(0,0,0,.7);
+        --strip-bg: #ffffff;
+        --strip-ink: #000000;
+        --tile: #f4f4f4;
+        --tile-top: #ffffff;
+        --tile-bottom: #dcdcdc;
+        --tile-ink: #000000;
+        --tile-seam: #9a9a9a;
+        --tile-shadow: 0 22px 34px rgba(0,0,0,.8), 0 4px 10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.9);
+        --bolt: #d6d6d6;
+        --bolt-slot: #4a4a4a;
+        --row-hover-bg: #ffffff;
+        --row-hover-ink: #000000;
+        --paper: #0a0a0a;
+        --paper-ink: #ffffff;
+        --paper-line: #2a2a2a;
+        --btn-bg: #000000;
+        --btn-primary-bg: #ffffff;
+        --btn-primary-ink: #000000;
+        --field-bg: #000000;
+        --track: #1c1c1c;
+        --fill: #ffffff;
       }
+
       * { box-sizing: border-box; }
       html { -webkit-text-size-adjust: 100%; }
       body {
@@ -58,225 +99,358 @@
         color: var(--ink);
         font-family: "Archivo", system-ui, -apple-system, sans-serif;
         line-height: 1.45;
+        transition: background .25s ease, color .25s ease;
       }
       button { font: inherit; cursor: pointer; }
-      input, select, textarea { font: inherit; color: inherit; }
-      .wrap { max-width: 1060px; margin: 0 auto; padding: 20px 18px 64px; }
+      input { font: inherit; color: inherit; }
 
-      /* ---------- Header ---------- */
+      .wrap { max-width: 1460px; margin: 0 auto; padding: 18px clamp(12px, 2.6vw, 34px) 64px; }
+
+      /* ---------- Top strip: date + theme toggle ---------- */
       header.top {
-        display: flex; align-items: baseline; justify-content: space-between;
-        gap: 12px; flex-wrap: wrap; padding: 6px 2px 18px;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap; padding: 2px 2px 14px;
       }
-      .brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
-      .brand .word {
-        font-weight: 900; font-size: 30px; letter-spacing: .14em; text-transform: uppercase; line-height: 1;
+      .top .board-no {
+        font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+        letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft);
       }
-      .brand .by {
-        font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft);
-        letter-spacing: .04em; white-space: nowrap;
+      .top .board-no b { color: var(--ink); }
+      .top-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+      .live-date { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-soft); letter-spacing: .04em; }
+      .theme-toggle {
+        display: inline-flex; align-items: center; gap: 9px;
+        border: 2px solid var(--line-strong); background: var(--bg); color: var(--ink);
+        border-radius: 999px; padding: 6px 14px 6px 7px;
+        font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 700;
+        letter-spacing: .14em; text-transform: uppercase;
       }
-      .brand .by a { color: var(--ink); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--ink); }
-      .brand .by a:hover { opacity: .65; }
-      .live-date {
-        font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-soft); text-align: right;
+      .theme-toggle .swatch {
+        width: 20px; height: 20px; border-radius: 50%; flex: none;
+        border: 2px solid var(--line-strong);
+        background: linear-gradient(90deg, #000 50%, #fff 50%);
       }
+      :root[data-theme="dark"] .theme-toggle .swatch { background: linear-gradient(90deg, #fff 50%, #000 50%); }
+      .theme-toggle:active { transform: scale(.97); }
 
-      /* ---------- Tabs ---------- */
+      /* ---------- Tabs — board line selectors ---------- */
       nav.tabs {
-        display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line);
-        border-radius: 999px; padding: 4px; margin-bottom: 22px;
+        display: flex; gap: 0; border: 2px solid var(--line-strong);
+        background: var(--bg); margin-bottom: 20px;
       }
       nav.tabs button {
-        flex: 1; border: 0; background: transparent; color: var(--ink-soft);
-        padding: 10px 6px; border-radius: 999px; font-weight: 700; font-size: 14px;
-        letter-spacing: .02em; transition: background .15s, color .15s;
+        flex: 1; border: 0; border-right: 2px solid var(--line-strong);
+        background: transparent; color: var(--ink-soft);
+        padding: 13px 6px; font-family: "Barlow Condensed", sans-serif;
+        font-weight: 700; font-size: 19px; letter-spacing: .24em; text-transform: uppercase;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
       }
-      nav.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
-      @media (prefers-color-scheme: dark) {
-        nav.tabs button[aria-selected="true"] { background: var(--ink); color: #0a0a0a; }
+      nav.tabs button:last-child { border-right: 0; }
+      nav.tabs button .plat {
+        font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 700;
+        letter-spacing: .08em; border: 1.5px solid currentColor; padding: 1px 5px;
       }
+      nav.tabs button[aria-selected="true"] { background: var(--strip-bg); color: var(--strip-ink); }
       section.panel { display: none; }
       section.panel.active { display: block; }
 
-      .card {
-        background: var(--surface); border: 1px solid var(--line);
-        border-radius: var(--radius); box-shadow: var(--shadow);
+      /* ---------- The board ---------- */
+      .board {
+        position: relative;
+        background: var(--board-bg);
+        border: 3px solid var(--board-edge);
+        box-shadow: var(--board-shadow);
       }
+      .board .screw {
+        position: absolute; width: 13px; height: 13px; border-radius: 50%;
+        background: var(--bolt); z-index: 6; pointer-events: none;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.18);
+      }
+      .board .screw::after {
+        content: ""; position: absolute; left: 50%; top: 1.5px; bottom: 1.5px; width: 2px;
+        background: var(--bolt-slot); transform: translateX(-50%) rotate(38deg);
+      }
+      .screw.tl { top: 9px; left: 9px; } .screw.tr { top: 9px; right: 9px; }
+      .screw.bl { bottom: 9px; left: 9px; } .screw.br { bottom: 9px; right: 9px; }
 
-      /* ---------- Flip clock ---------- */
-      .clock-stage { padding: 34px 20px 26px; text-align: center; }
-      .flip-row {
-        display: flex; justify-content: center; align-items: flex-start;
-        gap: clamp(6px, 2vw, 14px); flex-wrap: nowrap;
+      .board-strip {
+        background: var(--strip-bg); color: var(--strip-ink);
+        display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+        padding: 11px 20px;
+        font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+        letter-spacing: .26em; text-transform: uppercase;
       }
-      .flip-unit { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      .board-strip .live-dot {
+        display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+        background: var(--strip-ink); margin-right: 8px; vertical-align: 1px;
+        animation: blink 1.6s steps(1) infinite;
+      }
+      @keyframes blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .15; } }
+
+      /* ---------- Split-flap clock — fills the board ---------- */
+      .clock-stage { padding: clamp(26px, 5vh, 58px) clamp(10px, 3vw, 40px) clamp(20px, 4vh, 40px); text-align: center; }
+      .flip-row {
+        --flap-w: clamp(86px, 19.5vw, 308px);
+        --flap-h: calc(var(--flap-w) * 1.27);
+        display: flex; justify-content: center; align-items: flex-start;
+        gap: clamp(5px, 1.4vw, 18px); flex-wrap: nowrap;
+      }
+      .flip-unit { display: flex; flex-direction: column; align-items: center; gap: 12px; }
       .flap {
         position: relative;
-        width: clamp(84px, 24vw, 168px);
-        height: clamp(104px, 30vw, 208px);
-        perspective: 600px;
+        width: var(--flap-w); height: var(--flap-h);
+        perspective: 1100px;
         border-radius: 10px;
+        box-shadow: var(--tile-shadow);
       }
-      .flap .half {
-        position: absolute; left: 0; width: 100%; height: 50%; overflow: hidden;
-        background: var(--tile);
-      }
+      .flap .half { position: absolute; left: 0; width: 100%; height: 50%; overflow: hidden; }
       .flap .half.top {
-        top: 0; background: var(--tile-top);
-        border-radius: 10px 10px 0 0; border-bottom: 1px solid var(--tile-line);
+        top: 0; border-radius: 10px 10px 0 0;
+        background: linear-gradient(180deg, var(--tile-top), var(--tile));
+        border-bottom: 2px solid var(--tile-seam);
       }
-      .flap .half.bottom { bottom: 0; border-radius: 0 0 10px 10px; }
+      .flap .half.bottom {
+        bottom: 0; border-radius: 0 0 10px 10px;
+        background: linear-gradient(180deg, var(--tile), var(--tile-bottom));
+      }
       .flap .half span, .flap .leaf span {
         display: block; width: 100%;
-        height: clamp(104px, 30vw, 208px);
-        line-height: clamp(104px, 30vw, 208px);
+        height: var(--flap-h); line-height: var(--flap-h);
         text-align: center;
-        font-family: "Archivo", sans-serif; font-weight: 800;
-        font-size: clamp(56px, 17vw, 124px);
-        color: var(--tile-ink); letter-spacing: .01em;
+        font-family: "Archivo", sans-serif; font-weight: 900;
+        font-size: calc(var(--flap-w) * .82);
+        color: var(--tile-ink); letter-spacing: 0;
+        font-variant-numeric: tabular-nums;
       }
       .flap .half.bottom span, .flap .leaf.bottom-leaf span { transform: translateY(-50%); }
       .flap .leaf {
         position: absolute; left: 0; width: 100%; height: 50%; overflow: hidden;
-        background: var(--tile); display: none; z-index: 3;
-        backface-visibility: hidden;
+        display: none; z-index: 3; backface-visibility: hidden; will-change: transform;
       }
       .flap .leaf.top-leaf {
-        top: 0; background: var(--tile-top); border-radius: 10px 10px 0 0;
-        border-bottom: 1px solid var(--tile-line);
+        top: 0; border-radius: 10px 10px 0 0;
+        background: linear-gradient(180deg, var(--tile-top), var(--tile));
+        border-bottom: 2px solid var(--tile-seam);
         transform-origin: center bottom;
       }
       .flap .leaf.bottom-leaf {
         bottom: 0; border-radius: 0 0 10px 10px;
-        transform-origin: center top; transform: rotateX(90deg);
+        background: linear-gradient(180deg, var(--tile), var(--tile-bottom));
+        transform-origin: center top; transform: rotateX(92deg);
       }
       .flap.flipping .leaf { display: block; }
-      .flap.flipping .leaf.top-leaf { animation: leafTop .3s ease-in forwards; }
-      .flap.flipping .leaf.bottom-leaf { animation: leafBottom .3s ease-out .3s forwards; }
-      @keyframes leafTop { from { transform: rotateX(0); } to { transform: rotateX(-90deg); } }
-      @keyframes leafBottom { from { transform: rotateX(90deg); } to { transform: rotateX(0); } }
-      .flap::after { /* hinge bolts */
-        content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 2px;
-        background: rgba(0,0,0,.55); transform: translateY(-1px); z-index: 4;
+      .flap.flipping .leaf.top-leaf { animation: leafTop .27s cubic-bezier(.55,.06,.68,.19) forwards; }
+      .flap.flipping .leaf.bottom-leaf { animation: leafBottom .38s cubic-bezier(.23,1.35,.42,1) .27s forwards; }
+      @keyframes leafTop {
+        from { transform: rotateX(0deg); filter: brightness(1); }
+        to { transform: rotateX(-92deg); filter: brightness(.55); }
+      }
+      @keyframes leafBottom {
+        0% { transform: rotateX(92deg); filter: brightness(.6); }
+        70% { transform: rotateX(-7deg); filter: brightness(1.06); }
+        100% { transform: rotateX(0deg); filter: brightness(1); }
+      }
+      /* hinge bar + bolts */
+      .flap::after {
+        content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 3px;
+        background: var(--tile-seam); transform: translateY(-1.5px); z-index: 4;
+        box-shadow: 0 1px 0 rgba(255,255,255,.14);
+      }
+      .flap .pin {
+        position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+        background: var(--bolt); z-index: 5; transform: translateY(-50%);
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.22);
+      }
+      .flap .pin::after {
+        content: ""; position: absolute; left: 50%; top: 1px; bottom: 1px; width: 1.6px;
+        background: var(--bolt-slot); transform: translateX(-50%) rotate(38deg);
+      }
+      .flap .pin.l { left: 7px; } .flap .pin.r { right: 7px; }
+      /* side notches */
+      .flap::before {
+        content: ""; position: absolute; top: 50%; left: -3px; width: 6px; height: 22px;
+        background: var(--board-bg); transform: translateY(-50%); z-index: 4;
+        box-shadow: calc(var(--flap-w) - 0px) 0 0 var(--board-bg);
       }
       .flip-sep {
-        font-weight: 800; font-size: clamp(40px, 12vw, 96px); line-height: clamp(104px, 30vw, 208px);
-        color: var(--ink); padding: 0 1px; user-select: none;
+        font-weight: 900; font-size: calc(var(--flap-w) * .55); line-height: var(--flap-h);
+        color: var(--ink); user-select: none;
       }
       .flip-label {
-        font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .28em;
-        text-transform: uppercase; color: var(--ink-faint);
+        font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600;
+        letter-spacing: .34em; text-transform: uppercase; color: var(--ink-faint); text-indent: .34em;
       }
       .ampm {
-        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: clamp(14px, 3.4vw, 20px);
-        align-self: center; border: 2px solid var(--ink); border-radius: 8px; padding: 4px 9px;
-        margin-left: 2px;
+        font-family: "IBM Plex Mono", monospace; font-weight: 700;
+        font-size: clamp(13px, 2.6vw, 19px);
+        align-self: center; border: 2.5px solid var(--line-strong); padding: 5px 10px;
+        margin-left: 4px; letter-spacing: .1em;
       }
       .clock-controls {
-        display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 24px;
+        display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap;
+        margin-top: clamp(18px, 3.5vh, 32px);
       }
-      .seg { display: inline-flex; border: 1.5px solid var(--ink); border-radius: 999px; overflow: hidden; }
-      .seg button { border: 0; background: transparent; color: var(--ink); padding: 7px 16px; font-weight: 700; font-size: 13px; }
-      .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-      @media (prefers-color-scheme: dark) { .seg button[aria-pressed="true"] { color: #0a0a0a; } }
-      .tz-note { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+      .seg { display: inline-flex; border: 2px solid var(--line-strong); }
+      .seg button {
+        border: 0; background: transparent; color: var(--ink); padding: 7px 18px;
+        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13px; letter-spacing: .08em;
+      }
+      .seg button[aria-pressed="true"] { background: var(--strip-bg); color: var(--strip-ink); }
+      .tz-note { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft); }
 
-      .world-row {
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;
+      /* ---------- World clocks — board rows ---------- */
+      .rows-head, .board-row {
+        display: grid; grid-template-columns: 74px 1fr auto auto 92px;
+        align-items: baseline; gap: 8px 18px; padding: 0 clamp(14px, 3vw, 30px);
       }
-      @media (max-width: 560px) { .world-row { grid-template-columns: 1fr; } }
-      .world {
-        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-        padding: 14px 16px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+      .rows-head {
+        padding-top: 12px; padding-bottom: 8px;
+        font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 600;
+        letter-spacing: .26em; text-transform: uppercase; color: var(--ink-faint);
+        border-top: 2px solid var(--line-strong);
       }
-      .world .city { font-weight: 700; font-size: 14px; }
-      .world .wtime { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 17px; }
-      .world .wday { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); display: block; text-align: right; }
+      .rows-head .rh-time { text-align: right; }
+      .board-row {
+        padding-top: 15px; padding-bottom: 15px;
+        border-top: 1px solid var(--line);
+        transition: background .12s, color .12s;
+      }
+      .board-row:last-child { border-bottom: 0; }
+      .board-row:hover { background: var(--row-hover-bg); color: var(--row-hover-ink); }
+      .board-row:hover .wday, .board-row:hover .row-status { color: inherit; opacity: .75; }
+      .row-code {
+        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13px;
+        border: 2px solid currentColor; text-align: center; padding: 3px 0; letter-spacing: .12em;
+      }
+      .row-city {
+        font-family: "Barlow Condensed", sans-serif; font-weight: 700;
+        font-size: clamp(24px, 3.6vw, 38px); letter-spacing: .14em; text-transform: uppercase; line-height: 1;
+      }
+      .row-time { text-align: right; }
+      .row-time .wtime {
+        font-family: "IBM Plex Mono", monospace; font-weight: 700;
+        font-size: clamp(24px, 3.8vw, 40px); font-variant-numeric: tabular-nums; line-height: 1;
+      }
+      .row-day .wday {
+        font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-faint);
+        letter-spacing: .06em; white-space: nowrap;
+      }
+      .row-status {
+        font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 700;
+        letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); text-align: right;
+      }
+      @media (max-width: 640px) {
+        .rows-head { display: none; }
+        .board-row {
+          grid-template-columns: 50px minmax(0, 1fr) auto; grid-template-areas: "code city time" "code day day";
+          row-gap: 2px; column-gap: 10px; padding-left: 14px; padding-right: 14px;
+        }
+        .row-code { grid-area: code; align-self: center; font-size: 11.5px; }
+        .row-city { grid-area: city; font-size: 21px; letter-spacing: .1em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .row-time { grid-area: time; }
+        .row-time .wtime { font-size: 21px; }
+        .row-day { grid-area: day; }
+        .row-status { display: none; }
+      }
 
-      /* ---------- Timer / Pomodoro shared ---------- */
-      .tool-card { padding: 28px 22px; }
-      .big-readout {
-        font-family: "IBM Plex Mono", monospace; font-weight: 700; text-align: center;
-        font-size: clamp(56px, 15vw, 110px); letter-spacing: .02em; line-height: 1.05;
+      /* ---------- Timer / Pomodoro — board lines ---------- */
+      .tool-board { padding-bottom: 8px; }
+      .line-readout {
+        margin: clamp(22px, 4.5vh, 44px) clamp(14px, 3.4vw, 44px) 0;
+        background: var(--tile); color: var(--tile-ink);
+        box-shadow: var(--tile-shadow);
+        border-radius: 8px; position: relative;
+        padding: clamp(16px, 3.4vh, 30px) 12px;
+        text-align: center;
+      }
+      .line-readout::before, .line-readout::after {
+        content: ""; position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+        background: var(--bolt); transform: translateY(-50%);
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,.22);
+      }
+      .line-readout::before { left: 10px; } .line-readout::after { right: 10px; }
+      .line-readout .digits {
+        font-family: "IBM Plex Mono", monospace; font-weight: 700;
+        font-size: clamp(58px, 12.5vw, 138px); letter-spacing: .03em; line-height: 1.05;
         font-variant-numeric: tabular-nums;
       }
+      .tool-body { padding: 6px clamp(16px, 3.4vw, 44px) clamp(22px, 4vh, 36px); max-width: 860px; margin: 0 auto; }
       .progress {
-        height: 10px; background: var(--surface-2); border: 1px solid var(--line);
-        border-radius: 999px; overflow: hidden; margin: 22px auto 6px; max-width: 560px;
+        height: 12px; background: var(--track); border: 1.5px solid var(--line-strong);
+        margin: 24px auto 4px; max-width: 600px;
       }
-      .progress > div { height: 100%; width: 0%; background: var(--ink); transition: width .25s linear; }
+      .progress > div { height: 100%; width: 0%; background: var(--fill); transition: width .25s linear; }
       .btn-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
       .btn {
-        border: 1.5px solid var(--ink); background: var(--surface); color: var(--ink);
-        border-radius: 999px; padding: 11px 24px; font-weight: 700; font-size: 15px;
+        border: 2px solid var(--line-strong); background: var(--btn-bg); color: var(--ink);
+        padding: 11px 26px; font-family: "Barlow Condensed", sans-serif;
+        font-weight: 700; font-size: 18px; letter-spacing: .18em; text-transform: uppercase;
         transition: transform .08s, opacity .15s;
       }
       .btn:active { transform: scale(.97); }
-      .btn.primary { background: var(--ink); color: var(--bg); }
-      @media (prefers-color-scheme: dark) { .btn.primary { color: #0a0a0a; } }
-      .btn.small { padding: 7px 15px; font-size: 13px; }
+      .btn.primary { background: var(--btn-primary-bg); color: var(--btn-primary-ink); }
+      .btn.small { padding: 8px 16px; font-size: 15px; }
       .btn:disabled { opacity: .35; cursor: not-allowed; }
-      .time-inputs { display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-      .time-inputs label {
+      .time-inputs { display: flex; justify-content: center; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+      .time-inputs label, .pomo-settings label {
         display: flex; flex-direction: column; align-items: center; gap: 6px;
-        font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .2em;
-        text-transform: uppercase; color: var(--ink-faint);
+        font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 600;
+        letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint);
       }
-      .time-inputs input {
-        width: 84px; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 600;
-        padding: 10px 4px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface);
+      .time-inputs input, .pomo-settings input {
+        text-align: center; font-family: "IBM Plex Mono", monospace; font-weight: 600;
+        border: 2px solid var(--line); background: var(--field-bg); color: var(--ink);
       }
-      .time-inputs input:focus { border-color: var(--ink); outline: none; }
+      .time-inputs input { width: 88px; font-size: 25px; padding: 10px 4px; }
+      .time-inputs input:focus, .pomo-settings input:focus { border-color: var(--line-strong); outline: none; }
       .presets { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
       .presets button {
-        border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
-        border-radius: 999px; padding: 6px 14px; font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 600;
+        border: 1.5px solid var(--line-strong); background: transparent; color: var(--ink);
+        padding: 6px 15px; font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 600;
       }
-      .presets button:hover { border-color: var(--ink); }
+      .presets button:hover { background: var(--strip-bg); color: var(--strip-ink); }
       .status-line {
         text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 13px;
-        color: var(--ink-soft); min-height: 20px; margin-top: 14px;
+        color: var(--ink-soft); min-height: 20px; margin-top: 14px; letter-spacing: .03em;
       }
-
-      .pomo-modes { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+      .pomo-modes { display: flex; justify-content: center; gap: 0; flex-wrap: wrap; margin-top: 26px; border: 2px solid var(--line-strong); width: fit-content; margin-left: auto; margin-right: auto; max-width: 100%; }
       .pomo-modes button {
-        border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
-        border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 14px;
+        border: 0; border-right: 2px solid var(--line-strong); background: transparent; color: var(--ink);
+        padding: 9px 18px; font-family: "Barlow Condensed", sans-serif;
+        font-weight: 700; font-size: 17px; letter-spacing: .16em; text-transform: uppercase;
       }
-      .pomo-modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-      @media (prefers-color-scheme: dark) { .pomo-modes button[aria-pressed="true"] { color: #0a0a0a; } }
-      .dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
-      .dots span { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); display: block; }
-      .dots span.done { background: var(--ink); }
+      .pomo-modes button:last-child { border-right: 0; }
+      .pomo-modes button[aria-pressed="true"] { background: var(--strip-bg); color: var(--strip-ink); }
+      .dots { display: flex; justify-content: center; gap: 9px; margin-top: 18px; }
+      .dots span { width: 13px; height: 13px; border-radius: 50%; border: 2.5px solid var(--line-strong); display: block; }
+      .dots span.done { background: var(--fill); }
       .pomo-settings {
-        display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 24px;
-        border-top: 1px dashed var(--line); padding-top: 20px;
+        display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 26px;
+        border-top: 2px dashed var(--line); padding-top: 22px;
       }
-      .pomo-settings label {
-        display: flex; flex-direction: column; align-items: center; gap: 6px;
-        font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em;
-        text-transform: uppercase; color: var(--ink-faint);
-      }
-      .pomo-settings input {
-        width: 70px; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 600;
-        padding: 7px 4px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface);
-      }
+      .pomo-settings input { width: 72px; font-size: 18px; padding: 7px 4px; }
       .toggle-btn {
-        border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink-soft);
-        border-radius: 999px; padding: 8px 16px; font-weight: 600; font-size: 13px;
+        border: 2px solid var(--line-strong); background: transparent; color: var(--ink);
+        padding: 8px 16px; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13px;
       }
-      .toggle-btn[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
-      @media (prefers-color-scheme: dark) { .toggle-btn[aria-pressed="true"] { color: #0a0a0a; } }
+      .toggle-btn[aria-pressed="true"] { background: var(--strip-bg); color: var(--strip-ink); }
 
-      /* ---------- Calendar ---------- */
-      .cal-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-      @media (max-width: 820px) { .cal-layout { grid-template-columns: 1fr; } }
+      /* ---------- Calendar — inside the Clock tab, date-only ---------- */
+      .cal-block { margin-top: 30px; }
+      .cal-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 2px 14px; }
+      .cal-head h2 {
+        margin: 0; font-family: "Barlow Condensed", sans-serif; font-size: 26px; font-weight: 700;
+        letter-spacing: .22em; text-transform: uppercase;
+      }
+      .cal-head .cal-hint { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft); }
+      .cal-layout { display: grid; grid-template-columns: 1fr 1.12fr; gap: 18px; align-items: start; }
+      @media (max-width: 860px) { .cal-layout { grid-template-columns: 1fr; } }
 
-      .sheet-stage { position: relative; padding: 6px; }
+      .sheet-stage { position: relative; }
       .sheet {
-        background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
-        box-shadow: var(--shadow); overflow: hidden; position: relative;
+        background: var(--paper); color: var(--paper-ink);
+        border: 2.5px solid var(--line-strong);
+        box-shadow: var(--board-shadow); overflow: hidden; position: relative;
         transform-origin: top center;
       }
       .sheet.tearing { animation: tearOff .65s ease-in forwards; }
@@ -286,328 +460,212 @@
         100% { transform: rotate(7deg) translateY(120%) translateX(6%); opacity: 0; }
       }
       .sheet-head {
-        background: var(--ink); color: var(--bg); padding: 14px 18px 12px;
+        background: var(--strip-bg); color: var(--strip-ink); padding: 14px 18px 12px;
         display: flex; justify-content: space-between; align-items: baseline;
       }
-      @media (prefers-color-scheme: dark) { .sheet-head { color: #0a0a0a; } }
-      .sheet-head .month { font-weight: 900; font-size: 22px; letter-spacing: .1em; text-transform: uppercase; }
+      .sheet-head .month { font-weight: 900; font-size: 23px; letter-spacing: .12em; text-transform: uppercase; }
       .sheet-head .year { font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 18px; }
-      .spiral {
-        display: flex; justify-content: space-evenly; padding: 7px 0 1px;
-        border-bottom: 1px dashed var(--paper-line);
-      }
+      .spiral { display: flex; justify-content: space-evenly; padding: 8px 0 2px; border-bottom: 1px dashed var(--paper-line); }
       .spiral span { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink-faint); display: block; }
-      .sheet-body { text-align: center; padding: 16px 14px 20px; }
+      .sheet-body { text-align: center; padding: 18px 14px 22px; }
       .sheet-body .dow {
         font-family: "IBM Plex Mono", monospace; letter-spacing: .34em; text-transform: uppercase;
         font-size: 13px; color: var(--ink-soft); text-indent: .34em;
       }
-      .sheet-body .daynum { font-weight: 900; font-size: clamp(96px, 26vw, 150px); line-height: 1.02; }
+      :root[data-theme="dark"] .sheet-body .dow { color: var(--ink-soft); }
+      .sheet-body .daynum { font-weight: 900; font-size: clamp(104px, 24vw, 168px); line-height: 1.02; }
       .sheet-body .full-date { font-family: "IBM Plex Mono", monospace; font-size: 13.5px; color: var(--ink-soft); }
       .sheet-body .day-count {
-        display: inline-block; margin-top: 10px; border: 1.5px solid var(--ink); border-radius: 999px;
-        padding: 3px 12px; font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+        display: inline-block; margin-top: 11px; border: 2px solid var(--line-strong); border-radius: 999px;
+        padding: 3px 13px; font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
       }
       .sheet-nav { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
       .sheet-nav .btn { flex: 1; white-space: nowrap; }
 
-      .month-card { padding: 18px; }
+      .month-card {
+        background: var(--board-bg); border: 2.5px solid var(--line-strong);
+        box-shadow: var(--board-shadow); padding: 18px;
+      }
       .month-card h3 {
-        margin: 0 0 4px; font-size: 17px; font-weight: 800; letter-spacing: .04em;
+        margin: 0 0 4px; font-family: "Barlow Condensed", sans-serif; font-size: 21px; font-weight: 700;
+        letter-spacing: .14em; text-transform: uppercase;
         display: flex; justify-content: space-between; align-items: center;
       }
       .month-nav { display: flex; gap: 6px; }
       .month-nav button {
-        width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--ink);
-        background: var(--surface); color: var(--ink); font-weight: 800; line-height: 1;
+        width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line-strong);
+        background: var(--btn-bg); color: var(--ink); font-weight: 800; line-height: 1;
       }
       .grid-head, .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
       .grid-head span {
-        text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
-        letter-spacing: .06em; color: var(--ink-faint); padding: 6px 0 3px; text-transform: uppercase;
+        text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 600;
+        letter-spacing: .06em; color: var(--ink-faint); padding: 7px 0 3px; text-transform: uppercase;
       }
       .grid button {
-        position: relative; border: 1px solid transparent; background: transparent; color: var(--ink);
-        border-radius: 8px; padding: 8px 0 10px; font-family: "IBM Plex Mono", monospace;
-        font-size: 13.5px; font-weight: 600; min-height: 38px;
+        position: relative; border: 1.5px solid transparent; background: transparent; color: var(--ink);
+        padding: 10px 0; font-family: "IBM Plex Mono", monospace;
+        font-size: 14.5px; font-weight: 600; min-height: 45px;
       }
-      .grid button:hover { border-color: var(--line); }
+      .grid button:hover { border-color: var(--line-strong); }
       .grid button.other { color: var(--ink-faint); opacity: .55; }
-      .grid button.today { border: 1.5px solid var(--ink); }
-      .grid button.selected { background: var(--ink); color: var(--bg); }
-      @media (prefers-color-scheme: dark) { .grid button.selected { color: #0a0a0a; } }
-      .grid button .dot {
-        position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-        width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .85;
-      }
-      .grid button .dot.open { background: var(--ink); }
-      .grid button.selected .dot { background: var(--bg); }
-      @media (prefers-color-scheme: dark) { .grid button.selected .dot { background: #0a0a0a; } }
+      .grid button.today { border: 2px solid var(--line-strong); }
+      .grid button.selected { background: var(--strip-bg); color: var(--strip-ink); }
       .sunday { font-weight: 700; }
 
-      .items-card { padding: 20px; margin-top: 16px; }
-      .items-card h3 { margin: 0 0 2px; font-size: 17px; font-weight: 800; }
-      .items-card .sub { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; }
-      .item {
-        display: flex; gap: 10px; align-items: flex-start; padding: 11px 0;
-        border-top: 1px solid var(--line);
-      }
-      .item:first-of-type { border-top: 0; }
-      .item .check {
-        flex: none; width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--ink);
-        background: var(--surface); color: var(--bg); font-size: 14px; font-weight: 900;
-        display: flex; align-items: center; justify-content: center; line-height: 1; margin-top: 1px;
-      }
-      @media (prefers-color-scheme: dark) { .item .check { color: #0a0a0a; } }
-      .item .check.done { background: var(--ink); }
-      .item .body { flex: 1; min-width: 0; }
-      .item .title { font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
-      .item.done .title { text-decoration: line-through; color: var(--ink-faint); }
-      .item .meta { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
-      .item .notes { font-size: 13.5px; color: var(--ink-soft); margin-top: 3px; overflow-wrap: anywhere; }
-      .item .del {
-        flex: none; border: 0; background: transparent; color: var(--ink-faint);
-        font-size: 18px; padding: 2px 6px; border-radius: 6px;
-      }
-      .item .del:hover { color: var(--ink); }
-      .tag {
-        display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 700;
-        letter-spacing: .08em; text-transform: uppercase; border: 1.5px solid var(--ink);
-        border-radius: 999px; padding: 1px 8px; margin-right: 6px; vertical-align: 1px;
-      }
-      .tag.t-due { background: var(--ink); color: var(--bg); }
-      @media (prefers-color-scheme: dark) { .tag.t-due { color: #0a0a0a; } }
-      .tag.t-event { background: var(--surface-2); }
-      .tag.t-reminder { border-style: dashed; }
-      .tag.t-task { background: var(--surface); }
-      .empty-note { color: var(--ink-faint); font-size: 14px; padding: 8px 0 2px; }
-
-      form.add-form {
-        border-top: 1px dashed var(--line); margin-top: 14px; padding-top: 16px;
-        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-      }
-      form.add-form .full { grid-column: 1 / -1; }
-      form.add-form label {
-        display: flex; flex-direction: column; gap: 5px;
-        font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .14em;
-        text-transform: uppercase; color: var(--ink-faint);
-      }
-      form.add-form input, form.add-form select, form.add-form textarea {
-        border: 1.5px solid var(--line); border-radius: 9px; background: var(--surface);
-        padding: 9px 10px; font-size: 14.5px; font-family: "Archivo", sans-serif; text-transform: none; letter-spacing: 0;
-      }
-      form.add-form input:focus, form.add-form select:focus, form.add-form textarea:focus { border-color: var(--ink); outline: none; }
-      form.add-form textarea { resize: vertical; min-height: 38px; }
-
-      .upcoming { margin-top: 16px; padding: 20px; }
-      .upcoming h3 { margin: 0 0 6px; font-size: 17px; font-weight: 800; }
-      .up-row {
-        display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--line);
-      }
-      .up-row:first-of-type { border-top: 0; }
-      .up-row .when {
-        flex: none; width: 118px; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 700;
-      }
-      .up-row .when.overdue { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
-      .up-row .what { flex: 1; min-width: 0; font-size: 14.5px; overflow-wrap: anywhere; }
-      .up-row .what .d { color: var(--ink-faint); font-family: "IBM Plex Mono", monospace; font-size: 11.5px; }
-
       footer.foot {
-        margin-top: 34px; text-align: center; font-family: "IBM Plex Mono", monospace;
-        font-size: 12px; color: var(--ink-faint);
+        margin-top: 36px; text-align: center; font-family: "IBM Plex Mono", monospace;
+        font-size: 12px; color: var(--ink-faint); letter-spacing: .03em;
       }
       footer.foot a { color: var(--ink-soft); font-weight: 600; }
+
+      @media (max-width: 480px) {
+        .flip-row { --flap-w: clamp(70px, 24.5vw, 120px); }
+        nav.tabs button { font-size: 16px; letter-spacing: .16em; }
+        nav.tabs button .plat { display: none; }
+        .board-strip { letter-spacing: .16em; font-size: 11px; padding: 10px 14px; }
+      }
 
       @media (prefers-reduced-motion: reduce) {
         .flap.flipping .leaf.top-leaf, .flap.flipping .leaf.bottom-leaf,
         .sheet.tearing { animation-duration: .01s; }
+        .board-strip .live-dot { animation: none; }
         .progress > div { transition: none; }
+        body { transition: none; }
       }
     </style>
   </head>
   <body>
     <div class="wrap">
       <header class="top">
-        <div class="brand">
-          <span class="word">Klok</span>
-          <span class="by">a product of <a href="https://mark8production.net" target="_blank" rel="noopener">Mark8</a></span>
+        <span class="board-no">Klok · <b>Split-flap board</b></span>
+        <div class="top-right">
+          <span class="live-date" id="liveDate">—</span>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch colour theme">
+            <span class="swatch" aria-hidden="true"></span>
+            <span id="themeName">White theme</span>
+          </button>
         </div>
-        <div class="live-date" id="liveDate">—</div>
       </header>
 
       <nav class="tabs" role="tablist" aria-label="Klok tools">
-        <button role="tab" id="tab-clock" aria-selected="true" aria-controls="panel-clock" data-tab="clock">Clock</button>
-        <button role="tab" id="tab-timer" aria-selected="false" aria-controls="panel-timer" data-tab="timer">Timer</button>
-        <button role="tab" id="tab-pomodoro" aria-selected="false" aria-controls="panel-pomodoro" data-tab="pomodoro">Pomodoro</button>
-        <button role="tab" id="tab-calendar" aria-selected="false" aria-controls="panel-calendar" data-tab="calendar">Calendar</button>
+        <button role="tab" id="tab-clock" aria-selected="true" aria-controls="panel-clock" data-tab="clock"><span class="plat">01</span>Clock</button>
+        <button role="tab" id="tab-timer" aria-selected="false" aria-controls="panel-timer" data-tab="timer"><span class="plat">02</span>Timer</button>
+        <button role="tab" id="tab-pomodoro" aria-selected="false" aria-controls="panel-pomodoro" data-tab="pomodoro"><span class="plat">03</span>Pomodoro</button>
       </nav>
 
       <!-- ============ CLOCK ============ -->
       <section class="panel active" id="panel-clock" role="tabpanel" aria-labelledby="tab-clock">
-        <div class="card clock-stage">
-          <div class="flip-row" id="flipRow" aria-label="Current time">
-            <div class="flip-unit">
-              <div class="flap" data-unit="h">
-                <div class="half top"><span>00</span></div>
-                <div class="half bottom"><span>00</span></div>
-                <div class="leaf top-leaf"><span>00</span></div>
-                <div class="leaf bottom-leaf"><span>00</span></div>
-              </div>
-              <div class="flip-label">Hours</div>
-            </div>
-            <div class="flip-sep" aria-hidden="true">:</div>
-            <div class="flip-unit">
-              <div class="flap" data-unit="m">
-                <div class="half top"><span>00</span></div>
-                <div class="half bottom"><span>00</span></div>
-                <div class="leaf top-leaf"><span>00</span></div>
-                <div class="leaf bottom-leaf"><span>00</span></div>
-              </div>
-              <div class="flip-label">Minutes</div>
-            </div>
-            <div class="flip-sep" aria-hidden="true">:</div>
-            <div class="flip-unit">
-              <div class="flap" data-unit="s">
-                <div class="half top"><span>00</span></div>
-                <div class="half bottom"><span>00</span></div>
-                <div class="leaf top-leaf"><span>00</span></div>
-                <div class="leaf bottom-leaf"><span>00</span></div>
-              </div>
-              <div class="flip-label">Seconds</div>
-            </div>
-            <div class="ampm" id="ampm" hidden>AM</div>
+        <div class="board">
+          <span class="screw tl" aria-hidden="true"></span><span class="screw tr" aria-hidden="true"></span>
+          <span class="screw bl" aria-hidden="true"></span><span class="screw br" aria-hidden="true"></span>
+          <div class="board-strip">
+            <span><span class="live-dot" aria-hidden="true"></span>Main board — Local time</span>
+            <span id="stripDate">—</span>
           </div>
-          <div class="clock-controls">
-            <div class="seg" role="group" aria-label="Hour format">
-              <button id="fmt12" aria-pressed="false">12H</button>
-              <button id="fmt24" aria-pressed="true">24H</button>
-            </div>
-            <span class="tz-note" id="tzNote"></span>
-          </div>
-        </div>
 
-        <div class="world-row">
-          <div class="world"><span class="city">Kathmandu</span><span><span class="wtime" data-tz="Asia/Kathmandu">—</span><span class="wday" data-tzday="Asia/Kathmandu"></span></span></div>
-          <div class="world"><span class="city">Chicago</span><span><span class="wtime" data-tz="America/Chicago">—</span><span class="wday" data-tzday="America/Chicago"></span></span></div>
-          <div class="world"><span class="city">London</span><span><span class="wtime" data-tz="Europe/London">—</span><span class="wday" data-tzday="Europe/London"></span></span></div>
-        </div>
-      </section>
-
-      <!-- ============ TIMER ============ -->
-      <section class="panel" id="panel-timer" role="tabpanel" aria-labelledby="tab-timer">
-        <div class="card tool-card">
-          <div class="big-readout" id="timerReadout">00:00:00</div>
-          <div class="progress" aria-hidden="true"><div id="timerBar"></div></div>
-          <div class="status-line" id="timerStatus">Set a duration and press Start.</div>
-          <div class="time-inputs">
-            <label>Hours<input type="number" id="tH" min="0" max="99" value="0" inputmode="numeric" /></label>
-            <label>Minutes<input type="number" id="tM" min="0" max="59" value="5" inputmode="numeric" /></label>
-            <label>Seconds<input type="number" id="tS" min="0" max="59" value="0" inputmode="numeric" /></label>
-          </div>
-          <div class="presets" id="timerPresets">
-            <button data-min="1">1m</button>
-            <button data-min="5">5m</button>
-            <button data-min="10">10m</button>
-            <button data-min="15">15m</button>
-            <button data-min="25">25m</button>
-            <button data-min="30">30m</button>
-            <button data-min="60">1h</button>
-          </div>
-          <div class="btn-row">
-            <button class="btn primary" id="timerStart">Start</button>
-            <button class="btn" id="timerPause" disabled>Pause</button>
-            <button class="btn" id="timerReset">Reset</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ POMODORO ============ -->
-      <section class="panel" id="panel-pomodoro" role="tabpanel" aria-labelledby="tab-pomodoro">
-        <div class="card tool-card">
-          <div class="pomo-modes" role="group" aria-label="Pomodoro mode">
-            <button data-mode="focus" aria-pressed="true">Focus</button>
-            <button data-mode="short" aria-pressed="false">Short break</button>
-            <button data-mode="long" aria-pressed="false">Long break</button>
-          </div>
-          <div class="big-readout" id="pomoReadout">25:00</div>
-          <div class="progress" aria-hidden="true"><div id="pomoBar"></div></div>
-          <div class="dots" id="pomoDots" aria-label="Completed focus sessions">
-            <span></span><span></span><span></span><span></span>
-          </div>
-          <div class="status-line" id="pomoStatus">Ready to focus.</div>
-          <div class="btn-row">
-            <button class="btn primary" id="pomoStart">Start</button>
-            <button class="btn" id="pomoPause" disabled>Pause</button>
-            <button class="btn" id="pomoReset">Reset</button>
-            <button class="btn" id="pomoSkip">Skip</button>
-          </div>
-          <div class="pomo-settings">
-            <label>Focus (min)<input type="number" id="pFocus" min="1" max="180" value="25" inputmode="numeric" /></label>
-            <label>Short (min)<input type="number" id="pShort" min="1" max="60" value="5" inputmode="numeric" /></label>
-            <label>Long (min)<input type="number" id="pLong" min="1" max="90" value="15" inputmode="numeric" /></label>
-            <label>Auto-start next
-              <button type="button" class="toggle-btn" id="pAuto" aria-pressed="false">Off</button>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ CALENDAR ============ -->
-      <section class="panel" id="panel-calendar" role="tabpanel" aria-labelledby="tab-calendar">
-        <div class="cal-layout">
-          <div>
-            <div class="sheet-stage">
-              <div class="sheet" id="sheet">
-                <div class="sheet-head">
-                  <span class="month" id="sheetMonth">—</span>
-                  <span class="year" id="sheetYear">—</span>
+          <div class="clock-stage">
+            <div class="flip-row" id="flipRow" aria-label="Current time">
+              <div class="flip-unit">
+                <div class="flap" data-unit="h">
+                  <div class="half top"><span>00</span></div>
+                  <div class="half bottom"><span>00</span></div>
+                  <div class="leaf top-leaf"><span>00</span></div>
+                  <div class="leaf bottom-leaf"><span>00</span></div>
+                  <span class="pin l" aria-hidden="true"></span><span class="pin r" aria-hidden="true"></span>
                 </div>
-                <div class="spiral" aria-hidden="true">
-                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                <div class="flip-label">Hours</div>
+              </div>
+              <div class="flip-sep" aria-hidden="true">:</div>
+              <div class="flip-unit">
+                <div class="flap" data-unit="m">
+                  <div class="half top"><span>00</span></div>
+                  <div class="half bottom"><span>00</span></div>
+                  <div class="leaf top-leaf"><span>00</span></div>
+                  <div class="leaf bottom-leaf"><span>00</span></div>
+                  <span class="pin l" aria-hidden="true"></span><span class="pin r" aria-hidden="true"></span>
                 </div>
-                <div class="sheet-body">
-                  <div class="dow" id="sheetDow">—</div>
-                  <div class="daynum" id="sheetDay">—</div>
-                  <div class="full-date" id="sheetFull">—</div>
-                  <div><span class="day-count" id="sheetCount"></span></div>
+                <div class="flip-label">Minutes</div>
+              </div>
+              <div class="flip-sep" aria-hidden="true">:</div>
+              <div class="flip-unit">
+                <div class="flap" data-unit="s">
+                  <div class="half top"><span>00</span></div>
+                  <div class="half bottom"><span>00</span></div>
+                  <div class="leaf top-leaf"><span>00</span></div>
+                  <div class="leaf bottom-leaf"><span>00</span></div>
+                  <span class="pin l" aria-hidden="true"></span><span class="pin r" aria-hidden="true"></span>
+                </div>
+                <div class="flip-label">Seconds</div>
+              </div>
+              <div class="ampm" id="ampm" hidden>AM</div>
+            </div>
+            <div class="clock-controls">
+              <div class="seg" role="group" aria-label="Hour format">
+                <button id="fmt12" aria-pressed="false">12H</button>
+                <button id="fmt24" aria-pressed="true">24H</button>
+              </div>
+              <span class="tz-note" id="tzNote"></span>
+            </div>
+          </div>
+
+          <div class="rows-head" aria-hidden="true">
+            <span>Code</span><span>Destination</span><span class="rh-time">Time</span><span>Day</span><span style="text-align:right">Status</span>
+          </div>
+          <div class="board-row">
+            <span class="row-code">KTM</span>
+            <span class="row-city">Kathmandu</span>
+            <span class="row-time"><span class="wtime" data-tz="Asia/Kathmandu">—</span></span>
+            <span class="row-day"><span class="wday" data-tzday="Asia/Kathmandu"></span></span>
+            <span class="row-status">On time</span>
+          </div>
+          <div class="board-row">
+            <span class="row-code">CHI</span>
+            <span class="row-city">Chicago</span>
+            <span class="row-time"><span class="wtime" data-tz="America/Chicago">—</span></span>
+            <span class="row-day"><span class="wday" data-tzday="America/Chicago"></span></span>
+            <span class="row-status">On time</span>
+          </div>
+          <div class="board-row">
+            <span class="row-code">LON</span>
+            <span class="row-city">London</span>
+            <span class="row-time"><span class="wtime" data-tz="Europe/London">—</span></span>
+            <span class="row-day"><span class="wday" data-tzday="Europe/London"></span></span>
+            <span class="row-status">On time</span>
+          </div>
+        </div>
+
+        <div class="cal-block">
+          <div class="cal-head">
+            <h2>Calendar</h2>
+            <span class="cal-hint">Tap any date to see its sheet</span>
+          </div>
+          <div class="cal-layout">
+            <div>
+              <div class="sheet-stage">
+                <div class="sheet" id="sheet">
+                  <div class="sheet-head">
+                    <span class="month" id="sheetMonth">—</span>
+                    <span class="year" id="sheetYear">—</span>
+                  </div>
+                  <div class="spiral" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                  <div class="sheet-body">
+                    <div class="dow" id="sheetDow">—</div>
+                    <div class="daynum" id="sheetDay">—</div>
+                    <div class="full-date" id="sheetFull">—</div>
+                    <div><span class="day-count" id="sheetCount"></span></div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="sheet-nav">
-              <button class="btn small" id="prevDay">← Prev day</button>
-              <button class="btn small primary" id="tearBtn">Tear off sheet</button>
-              <button class="btn small" id="todayBtn">Today</button>
+              <div class="sheet-nav">
+                <button class="btn small" id="prevDay">← Prev day</button>
+                <button class="btn small primary" id="tearBtn">Tear off sheet</button>
+                <button class="btn small" id="todayBtn">Today</button>
+              </div>
             </div>
 
-            <div class="card items-card">
-              <h3 id="itemsTitle">On this day</h3>
-              <div class="sub" id="itemsSub"></div>
-              <div id="itemsList"></div>
-              <form class="add-form" id="addForm">
-                <label class="full">Title
-                  <input type="text" id="fTitle" required maxlength="120" placeholder="e.g. Assignment due, Dentist, Call mom…" />
-                </label>
-                <label>Type
-                  <select id="fType">
-                    <option value="due">Due date</option>
-                    <option value="event">Event</option>
-                    <option value="reminder">Reminder</option>
-                    <option value="task">Task</option>
-                  </select>
-                </label>
-                <label>Time (optional)
-                  <input type="time" id="fTime" />
-                </label>
-                <label class="full">Notes (optional)
-                  <textarea id="fNotes" maxlength="300" placeholder="Anything worth remembering about it"></textarea>
-                </label>
-                <button type="submit" class="btn primary full">Add to this day</button>
-              </form>
-            </div>
-          </div>
-
-          <div>
-            <div class="card month-card">
+            <div class="month-card">
               <h3><span id="gridTitle">Month</span>
                 <span class="month-nav">
                   <button id="prevMonth" aria-label="Previous month">‹</button>
@@ -619,17 +677,87 @@
               </div>
               <div class="grid" id="monthGrid"></div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div class="card upcoming">
-              <h3>Coming up</h3>
-              <div id="upcomingList"></div>
+      <!-- ============ TIMER ============ -->
+      <section class="panel" id="panel-timer" role="tabpanel" aria-labelledby="tab-timer">
+        <div class="board tool-board">
+          <span class="screw tl" aria-hidden="true"></span><span class="screw tr" aria-hidden="true"></span>
+          <span class="screw bl" aria-hidden="true"></span><span class="screw br" aria-hidden="true"></span>
+          <div class="board-strip">
+            <span><span class="live-dot" aria-hidden="true"></span>Board line 02 — Timer</span>
+            <span>Countdown</span>
+          </div>
+          <div class="line-readout"><div class="digits" id="timerReadout">00:00:00</div></div>
+          <div class="tool-body">
+            <div class="progress" aria-hidden="true"><div id="timerBar"></div></div>
+            <div class="status-line" id="timerStatus">Set a duration and press Start.</div>
+            <div class="time-inputs">
+              <label>Hours<input type="number" id="tH" min="0" max="99" value="0" inputmode="numeric" /></label>
+              <label>Minutes<input type="number" id="tM" min="0" max="59" value="5" inputmode="numeric" /></label>
+              <label>Seconds<input type="number" id="tS" min="0" max="59" value="0" inputmode="numeric" /></label>
+            </div>
+            <div class="presets" id="timerPresets">
+              <button data-min="1">1m</button>
+              <button data-min="5">5m</button>
+              <button data-min="10">10m</button>
+              <button data-min="15">15m</button>
+              <button data-min="25">25m</button>
+              <button data-min="30">30m</button>
+              <button data-min="60">1h</button>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="timerStart">Start</button>
+              <button class="btn" id="timerPause" disabled>Pause</button>
+              <button class="btn" id="timerReset">Reset</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ POMODORO ============ -->
+      <section class="panel" id="panel-pomodoro" role="tabpanel" aria-labelledby="tab-pomodoro">
+        <div class="board tool-board">
+          <span class="screw tl" aria-hidden="true"></span><span class="screw tr" aria-hidden="true"></span>
+          <span class="screw bl" aria-hidden="true"></span><span class="screw br" aria-hidden="true"></span>
+          <div class="board-strip">
+            <span><span class="live-dot" aria-hidden="true"></span>Board line 03 — Pomodoro</span>
+            <span>Focus service</span>
+          </div>
+          <div class="line-readout"><div class="digits" id="pomoReadout">25:00</div></div>
+          <div class="tool-body">
+            <div class="pomo-modes" role="group" aria-label="Pomodoro mode">
+              <button data-mode="focus" aria-pressed="true">Focus</button>
+              <button data-mode="short" aria-pressed="false">Short break</button>
+              <button data-mode="long" aria-pressed="false">Long break</button>
+            </div>
+            <div class="progress" aria-hidden="true"><div id="pomoBar"></div></div>
+            <div class="dots" id="pomoDots" aria-label="Completed focus sessions">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="status-line" id="pomoStatus">Ready to focus.</div>
+            <div class="btn-row">
+              <button class="btn primary" id="pomoStart">Start</button>
+              <button class="btn" id="pomoPause" disabled>Pause</button>
+              <button class="btn" id="pomoReset">Reset</button>
+              <button class="btn" id="pomoSkip">Skip</button>
+            </div>
+            <div class="pomo-settings">
+              <label>Focus (min)<input type="number" id="pFocus" min="1" max="180" value="25" inputmode="numeric" /></label>
+              <label>Short (min)<input type="number" id="pShort" min="1" max="60" value="5" inputmode="numeric" /></label>
+              <label>Long (min)<input type="number" id="pLong" min="1" max="90" value="15" inputmode="numeric" /></label>
+              <label>Auto-start next
+                <button type="button" class="toggle-btn" id="pAuto" aria-pressed="false">Off</button>
+              </label>
             </div>
           </div>
         </div>
       </section>
 
       <footer class="foot">
-        Klok — flip clock, timer, pomodoro &amp; paper calendar. A product of
+        Klok — split-flap clock, timer, pomodoro &amp; paper calendar. A product of
         <a href="https://mark8production.net" target="_blank" rel="noopener">Mark8</a>.
       </footer>
     </div>
@@ -640,6 +768,21 @@
         var $ = function (s, r) { return (r || document).querySelector(s); };
         var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
         function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+        /* ---------- Theme toggle (choice remembered in this browser) ---------- */
+        var themeToggle = $("#themeToggle"), themeName = $("#themeName");
+        function renderTheme() {
+          var dark = document.documentElement.getAttribute("data-theme") === "dark";
+          themeName.textContent = dark ? "Black theme" : "White theme";
+          themeToggle.setAttribute("aria-label", dark ? "Switch to white theme" : "Switch to black theme");
+        }
+        themeToggle.addEventListener("click", function () {
+          var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          try { window.localStorage.setItem("klok-theme", next); } catch (e) { /* theme still applies for this visit */ }
+          renderTheme();
+        });
+        renderTheme();
 
         /* ---------- Sound (WebAudio beep) ---------- */
         var audioCtx = null;
@@ -690,7 +833,7 @@
           setTimeout(function () {
             bottom.textContent = newVal;
             u.el.classList.remove("flipping");
-          }, 620);
+          }, 680);
           u.val = newVal;
         }
         function initFlap(u, val) {
@@ -725,7 +868,9 @@
           if (force || units.h.val === null) { initFlap(units.h, hv); initFlap(units.m, mv); initFlap(units.s, sv); }
           else { setFlap(units.h, hv); setFlap(units.m, mv); setFlap(units.s, sv); }
 
-          $("#liveDate").textContent = DOWS[now.getDay()] + ", " + MONTHS[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear();
+          var dateText = DOWS[now.getDay()] + ", " + MONTHS[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear();
+          $("#liveDate").textContent = dateText;
+          $("#stripDate").textContent = dateText;
 
           $$(".wtime").forEach(function (el) {
             try {
@@ -906,7 +1051,7 @@
         pomo.set(pomoDur.focus);
         renderDots();
 
-        /* ---------- Calendar ---------- */
+        /* ---------- Calendar — date-only tear-off + month grid ---------- */
         function dayKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
         function startOfDay(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
         function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
@@ -914,19 +1059,14 @@
         var today = startOfDay(new Date());
         var selected = new Date(today);
         var gridCursor = new Date(today.getFullYear(), today.getMonth(), 1);
-        var items = {}; /* dayKey -> [{id, title, type, time, notes, done}] */
-        var nextId = 1;
         var tearing = false;
 
-        var TYPE_LABEL = { due: "Due date", event: "Event", reminder: "Reminder", task: "Task" };
-
-        function itemsFor(key) { return items[key] || []; }
         function relativeLabel(date) {
           var diff = Math.round((startOfDay(date) - today) / 86400000);
           if (diff === 0) return "Today";
           if (diff === 1) return "Tomorrow";
           if (diff === -1) return "Yesterday";
-          if (diff < 0) return Math.abs(diff) + " days overdue";
+          if (diff < 0) return Math.abs(diff) + " days ago";
           return "In " + diff + " days";
         }
 
@@ -949,7 +1089,6 @@
           var start = addDays(first, -first.getDay());
           for (var i = 0; i < 42; i++) {
             var d = addDays(start, i);
-            var key = dayKey(d);
             var btn = document.createElement("button");
             btn.type = "button";
             btn.textContent = d.getDate();
@@ -958,12 +1097,6 @@
             if (dayKey(d) === dayKey(today)) btn.classList.add("today");
             if (dayKey(d) === dayKey(selected)) btn.classList.add("selected");
             btn.setAttribute("aria-label", MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear());
-            var dayItems = itemsFor(key);
-            if (dayItems.length) {
-              var dot = document.createElement("span");
-              dot.className = "dot" + (dayItems.some(function (it) { return !it.done; }) ? " open" : "");
-              btn.appendChild(dot);
-            }
             (function (date) {
               btn.addEventListener("click", function () { selectDay(new Date(date), true); });
             })(d);
@@ -971,113 +1104,7 @@
           }
         }
 
-        function fmtTime(t) {
-          if (!t) return "";
-          var parts = t.split(":"), hh = parseInt(parts[0], 10), mm = parts[1];
-          var ap = hh >= 12 ? "PM" : "AM"; var h12 = hh % 12; if (h12 === 0) h12 = 12;
-          return h12 + ":" + mm + " " + ap;
-        }
-
-        function renderItems() {
-          var key = dayKey(selected);
-          $("#itemsTitle").textContent = MONTHS[selected.getMonth()] + " " + selected.getDate() + " — " + relativeLabel(selected);
-          $("#itemsSub").textContent = DOWS[selected.getDay()] + ", " + selected.getFullYear();
-          var list = $("#itemsList");
-          list.innerHTML = "";
-          var dayItems = itemsFor(key).slice().sort(function (a, b) {
-            return (a.time || "99:99").localeCompare(b.time || "99:99");
-          });
-          if (!dayItems.length) {
-            var p = document.createElement("p");
-            p.className = "empty-note";
-            p.textContent = "Nothing on this day yet. Add a due date, event, reminder, or task below.";
-            list.appendChild(p);
-          }
-          dayItems.forEach(function (it) {
-            var row = document.createElement("div");
-            row.className = "item" + (it.done ? " done" : "");
-            var check = document.createElement("button");
-            check.type = "button";
-            check.className = "check" + (it.done ? " done" : "");
-            check.textContent = it.done ? "✓" : "";
-            check.setAttribute("aria-label", it.done ? "Mark not done: " + it.title : "Mark done: " + it.title);
-            check.addEventListener("click", function () { it.done = !it.done; renderAll(); });
-            var body = document.createElement("div");
-            body.className = "body";
-            var title = document.createElement("div");
-            title.className = "title";
-            var tag = document.createElement("span");
-            tag.className = "tag t-" + it.type;
-            tag.textContent = TYPE_LABEL[it.type];
-            title.appendChild(tag);
-            title.appendChild(document.createTextNode(it.title));
-            body.appendChild(title);
-            if (it.time) {
-              var meta = document.createElement("div");
-              meta.className = "meta";
-              meta.textContent = fmtTime(it.time);
-              body.appendChild(meta);
-            }
-            if (it.notes) {
-              var notes = document.createElement("div");
-              notes.className = "notes";
-              notes.textContent = it.notes;
-              body.appendChild(notes);
-            }
-            var del = document.createElement("button");
-            del.type = "button";
-            del.className = "del";
-            del.textContent = "×";
-            del.setAttribute("aria-label", "Delete: " + it.title);
-            del.addEventListener("click", function () {
-              items[key] = itemsFor(key).filter(function (x) { return x.id !== it.id; });
-              renderAll();
-            });
-            row.appendChild(check); row.appendChild(body); row.appendChild(del);
-            list.appendChild(row);
-          });
-        }
-
-        function renderUpcoming() {
-          var wrap = $("#upcomingList");
-          wrap.innerHTML = "";
-          var flat = [];
-          Object.keys(items).forEach(function (key) {
-            items[key].forEach(function (it) {
-              if (!it.done) flat.push({ key: key, it: it });
-            });
-          });
-          flat.sort(function (a, b) { return a.key.localeCompare(b.key) || (a.it.time || "99:99").localeCompare(b.it.time || "99:99"); });
-          if (!flat.length) {
-            var p = document.createElement("p");
-            p.className = "empty-note";
-            p.textContent = "Nothing coming up. Open items you add will appear here.";
-            wrap.appendChild(p);
-            return;
-          }
-          flat.slice(0, 12).forEach(function (entry) {
-            var parts = entry.key.split("-");
-            var date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-            var row = document.createElement("div");
-            row.className = "up-row";
-            var when = document.createElement("span");
-            when.className = "when" + (startOfDay(date) < today ? " overdue" : "");
-            when.textContent = relativeLabel(date);
-            var what = document.createElement("span");
-            what.className = "what";
-            what.appendChild(document.createTextNode(entry.it.title));
-            var d = document.createElement("span");
-            d.className = "d";
-            d.textContent = " · " + MONTHS[date.getMonth()].slice(0, 3) + " " + date.getDate() + (entry.it.time ? " · " + fmtTime(entry.it.time) : "");
-            what.appendChild(d);
-            row.appendChild(when); row.appendChild(what);
-            row.addEventListener("click", function () { selectDay(new Date(date), true); });
-            row.style.cursor = "pointer";
-            wrap.appendChild(row);
-          });
-        }
-
-        function renderAll() { renderSheet(); renderGrid(); renderItems(); renderUpcoming(); }
+        function renderAll() { renderSheet(); renderGrid(); }
 
         function selectDay(date, syncGrid) {
           selected = startOfDay(date);
@@ -1103,25 +1130,6 @@
         });
         $("#nextMonth").addEventListener("click", function () {
           gridCursor = new Date(gridCursor.getFullYear(), gridCursor.getMonth() + 1, 1); renderGrid();
-        });
-
-        $("#addForm").addEventListener("submit", function (ev) {
-          ev.preventDefault();
-          var title = $("#fTitle").value.trim();
-          if (!title) return;
-          var key = dayKey(selected);
-          if (!items[key]) items[key] = [];
-          items[key].push({
-            id: nextId++,
-            title: title,
-            type: $("#fType").value,
-            time: $("#fTime").value || "",
-            notes: $("#fNotes").value.trim(),
-            done: false
-          });
-          $("#fTitle").value = ""; $("#fTime").value = ""; $("#fNotes").value = "";
-          renderAll();
-          $("#fTitle").focus();
         });
 
         renderAll();

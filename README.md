@@ -1,26 +1,29 @@
 # Klok
 
-Klok is a flipping clock I actually use. I wanted one place for the time, a timer, a pomodoro, and a calendar I can tear like a real paper calendar, so I built it that way.
+Klok is a flipping clock I actually use. I wanted one place for the time, a timer, a pomodoro, and a calendar I can glance at, so I built it that way.
 
 It is a product of Mark8 Production.
 
 Home: https://klok.mark8production.net
 
+## What it looks like now
+
+This version is a station departure board. The clock fills the screen with huge split-flap tiles that flip like a real board, with hinge pins and deep shadows. It feels mechanical, not like a normal app clock.
+
 ## What it does
 
 - A big split-flap clock that flips every second, with a 12 hour and 24 hour switch
-- Side clocks for Kathmandu, Chicago, and London, so I can glance at the time back home and where I study
+- World clocks for Kathmandu, Chicago, and London, shown as board rows with their codes, KTM, CHI, and LON
 - A timer with presets, pause, resume, reset, and a beep when it finishes
 - A pomodoro with Focus, Short break, and Long break, where you can change the lengths and it remembers them
-- A paper calendar you can tear to the next day, plus a full month view
-- A place to add due dates, events, reminders, and tasks, with a time and a note, and check them off when they are done
-- A Coming up list that shows what is due today, tomorrow, or overdue
+- A date-only calendar inside the Clock tab: a tear-off sheet and a month grid you can browse, tap a date, and tear to the next day
+- Both black and white themes, with a toggle that remembers your choice. White is white paper with black ink, Black is true black with white ink
 
 Everything is black and white, on purpose. No colour noise, just the clock and the work.
 
 ## One honest note about the calendar
 
-In this public version, calendar entries live only for your visit. There is no account and nothing is saved on a server, so if you reload the page, your entries are gone. That is by design for this version. My private version is separate and does save entries, but this public one is meant to be simple and light.
+In this public version, there is no to-do list and nothing is saved. There is no account and nothing is saved on a server, so the calendar is for looking at the date, not for keeping tasks. That is by design for this version. My private version is separate and does save entries, but this public one is meant to be simple and light.
 
 ## Run it yourself
 
