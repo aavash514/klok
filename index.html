@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Klok — Flip clock, timer, pomodoro &amp; tear-off calendar</title>
+    <meta name="description" content="Klok is a black-and-white flip clock with a timer, pomodoro, and a paper tear-off calendar. A product of Mark8." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f4f4f4;
+        --surface: #ffffff;
+        --surface-2: #ececec;
+        --ink: #0a0a0a;
+        --ink-soft: #4c4c4c;
+        --ink-faint: #8a8a8a;
+        --line: #d9d9d9;
+        --tile: #111111;
+        --tile-top: #1d1d1d;
+        --tile-ink: #f5f5f5;
+        --tile-line: #000000;
+        --accent: #0a0a0a;
+        --accent-ink: #ffffff;
+        --paper: #ffffff;
+        --paper-line: #e2e2e2;
+        --shadow: 0 18px 40px rgba(0,0,0,.10), 0 3px 10px rgba(0,0,0,.08);
+        --radius: 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #101010;
+          --surface-2: #1a1a1a;
+          --ink: #f5f5f5;
+          --ink-soft: #bdbdbd;
+          --ink-faint: #7d7d7d;
+          --line: #2b2b2b;
+          --tile: #171717;
+          --tile-top: #232323;
+          --tile-ink: #f5f5f5;
+          --tile-line: #000000;
+          --accent: #f5f5f5;
+          --accent-ink: #0a0a0a;
+          --paper: #111111;
+          --paper-line: #262626;
+          --shadow: 0 18px 40px rgba(0,0,0,.6), 0 3px 10px rgba(0,0,0,.5);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Archivo", system-ui, -apple-system, sans-serif;
+        line-height: 1.45;
+      }
+      button { font: inherit; cursor: pointer; }
+      input, select, textarea { font: inherit; color: inherit; }
+      .wrap { max-width: 1060px; margin: 0 auto; padding: 20px 18px 64px; }
+
+      /* ---------- Header ---------- */
+      header.top {
+        display: flex; align-items: baseline; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap; padding: 6px 2px 18px;
+      }
+      .brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+      .brand .word {
+        font-weight: 900; font-size: 30px; letter-spacing: .14em; text-transform: uppercase; line-height: 1;
+      }
+      .brand .by {
+        font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft);
+        letter-spacing: .04em; white-space: nowrap;
+      }
+      .brand .by a { color: var(--ink); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--ink); }
+      .brand .by a:hover { opacity: .65; }
+      .live-date {
+        font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-soft); text-align: right;
+      }
+
+      /* ---------- Tabs ---------- */
+      nav.tabs {
+        display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line);
+        border-radius: 999px; padding: 4px; margin-bottom: 22px;
+      }
+      nav.tabs button {
+        flex: 1; border: 0; background: transparent; color: var(--ink-soft);
+        padding: 10px 6px; border-radius: 999px; font-weight: 700; font-size: 14px;
+        letter-spacing: .02em; transition: background .15s, color .15s;
+      }
+      nav.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+      @media (prefers-color-scheme: dark) {
+        nav.tabs button[aria-selected="true"] { background: var(--ink); color: #0a0a0a; }
+      }
+      section.panel { display: none; }
+      section.panel.active { display: block; }
+
+      .card {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius); box-shadow: var(--shadow);
+      }
+
+      /* ---------- Flip clock ---------- */
+      .clock-stage { padding: 34px 20px 26px; text-align: center; }
+      .flip-row {
+        display: flex; justify-content: center; align-items: flex-start;
+        gap: clamp(6px, 2vw, 14px); flex-wrap: nowrap;
+      }
+      .flip-unit { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      .flap {
+        position: relative;
+        width: clamp(84px, 24vw, 168px);
+        height: clamp(104px, 30vw, 208px);
+        perspective: 600px;
+        border-radius: 10px;
+      }
+      .flap .half {
+        position: absolute; left: 0; width: 100%; height: 50%; overflow: hidden;
+        background: var(--tile);
+      }
+      .flap .half.top {
+        top: 0; background: var(--tile-top);
+        border-radius: 10px 10px 0 0; border-bottom: 1px solid var(--tile-line);
+      }
+      .flap .half.bottom { bottom: 0; border-radius: 0 0 10px 10px; }
+      .flap .half span, .flap .leaf span {
+        display: block; width: 100%;
+        height: clamp(104px, 30vw, 208px);
+        line-height: clamp(104px, 30vw, 208px);
+        text-align: center;
+        font-family: "Archivo", sans-serif; font-weight: 800;
+        font-size: clamp(56px, 17vw, 124px);
+        color: var(--tile-ink); letter-spacing: .01em;
+      }
+      .flap .half.bottom span, .flap .leaf.bottom-leaf span { transform: translateY(-50%); }
+      .flap .leaf {
+        position: absolute; left: 0; width: 100%; height: 50%; overflow: hidden;
+        background: var(--tile); display: none; z-index: 3;
+        backface-visibility: hidden;
+      }
+      .flap .leaf.top-leaf {
+        top: 0; background: var(--tile-top); border-radius: 10px 10px 0 0;
+        border-bottom: 1px solid var(--tile-line);
+        transform-origin: center bottom;
+      }
+      .flap .leaf.bottom-leaf {
+        bottom: 0; border-radius: 0 0 10px 10px;
+        transform-origin: center top; transform: rotateX(90deg);
+      }
+      .flap.flipping .leaf { display: block; }
+      .flap.flipping .leaf.top-leaf { animation: leafTop .3s ease-in forwards; }
+      .flap.flipping .leaf.bottom-leaf { animation: leafBottom .3s ease-out .3s forwards; }
+      @keyframes leafTop { from { transform: rotateX(0); } to { transform: rotateX(-90deg); } }
+      @keyframes leafBottom { from { transform: rotateX(90deg); } to { transform: rotateX(0); } }
+      .flap::after { /* hinge bolts */
+        content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 2px;
+        background: rgba(0,0,0,.55); transform: translateY(-1px); z-index: 4;
+      }
+      .flip-sep {
+        font-weight: 800; font-size: clamp(40px, 12vw, 96px); line-height: clamp(104px, 30vw, 208px);
+        color: var(--ink); padding: 0 1px; user-select: none;
+      }
+      .flip-label {
+        font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .28em;
+        text-transform: uppercase; color: var(--ink-faint);
+      }
+      .ampm {
+        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: clamp(14px, 3.4vw, 20px);
+        align-self: center; border: 2px solid var(--ink); border-radius: 8px; padding: 4px 9px;
+        margin-left: 2px;
+      }
+      .clock-controls {
+        display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 24px;
+      }
+      .seg { display: inline-flex; border: 1.5px solid var(--ink); border-radius: 999px; overflow: hidden; }
+      .seg button { border: 0; background: transparent; color: var(--ink); padding: 7px 16px; font-weight: 700; font-size: 13px; }
+      .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+      @media (prefers-color-scheme: dark) { .seg button[aria-pressed="true"] { color: #0a0a0a; } }
+      .tz-note { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+
+      .world-row {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;
+      }
+      @media (max-width: 560px) { .world-row { grid-template-columns: 1fr; } }
+      .world {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 14px 16px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+      }
+      .world .city { font-weight: 700; font-size: 14px; }
+      .world .wtime { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 17px; }
+      .world .wday { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); display: block; text-align: right; }
+
+      /* ---------- Timer / Pomodoro shared ---------- */
+      .tool-card { padding: 28px 22px; }
+      .big-readout {
+        font-family: "IBM Plex Mono", monospace; font-weight: 700; text-align: center;
+        font-size: clamp(56px, 15vw, 110px); letter-spacing: .02em; line-height: 1.05;
+        font-variant-numeric: tabular-nums;
+      }
+      .progress {
+        height: 10px; background: var(--surface-2); border: 1px solid var(--line);
+        border-radius: 999px; overflow: hidden; margin: 22px auto 6px; max-width: 560px;
+      }
+      .progress > div { height: 100%; width: 0%; background: var(--ink); transition: width .25s linear; }
+      .btn-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+      .btn {
+        border: 1.5px solid var(--ink); background: var(--surface); color: var(--ink);
+        border-radius: 999px; padding: 11px 24px; font-weight: 700; font-size: 15px;
+        transition: transform .08s, opacity .15s;
+      }
+      .btn:active { transform: scale(.97); }
+      .btn.primary { background: var(--ink); color: var(--bg); }
+      @media (prefers-color-scheme: dark) { .btn.primary { color: #0a0a0a; } }
+      .btn.small { padding: 7px 15px; font-size: 13px; }
+      .btn:disabled { opacity: .35; cursor: not-allowed; }
+      .time-inputs { display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+      .time-inputs label {
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .2em;
+        text-transform: uppercase; color: var(--ink-faint);
+      }
+      .time-inputs input {
+        width: 84px; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 600;
+        padding: 10px 4px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface);
+      }
+      .time-inputs input:focus { border-color: var(--ink); outline: none; }
+      .presets { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+      .presets button {
+        border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+        border-radius: 999px; padding: 6px 14px; font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 600;
+      }
+      .presets button:hover { border-color: var(--ink); }
+      .status-line {
+        text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 13px;
+        color: var(--ink-soft); min-height: 20px; margin-top: 14px;
+      }
+
+      .pomo-modes { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+      .pomo-modes button {
+        border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+        border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 14px;
+      }
+      .pomo-modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+      @media (prefers-color-scheme: dark) { .pomo-modes button[aria-pressed="true"] { color: #0a0a0a; } }
+      .dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+      .dots span { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); display: block; }
+      .dots span.done { background: var(--ink); }
+      .pomo-settings {
+        display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 24px;
+        border-top: 1px dashed var(--line); padding-top: 20px;
+      }
+      .pomo-settings label {
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em;
+        text-transform: uppercase; color: var(--ink-faint);
+      }
+      .pomo-settings input {
+        width: 70px; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 600;
+        padding: 7px 4px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface);
+      }
+      .toggle-btn {
+        border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink-soft);
+        border-radius: 999px; padding: 8px 16px; font-weight: 600; font-size: 13px;
+      }
+      .toggle-btn[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+      @media (prefers-color-scheme: dark) { .toggle-btn[aria-pressed="true"] { color: #0a0a0a; } }
+
+      /* ---------- Calendar ---------- */
+      .cal-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+      @media (max-width: 820px) { .cal-layout { grid-template-columns: 1fr; } }
+
+      .sheet-stage { position: relative; padding: 6px; }
+      .sheet {
+        background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+        box-shadow: var(--shadow); overflow: hidden; position: relative;
+        transform-origin: top center;
+      }
+      .sheet.tearing { animation: tearOff .65s ease-in forwards; }
+      @keyframes tearOff {
+        0% { transform: rotate(0) translateY(0); opacity: 1; }
+        30% { transform: rotate(-2.5deg) translateY(6px); opacity: 1; }
+        100% { transform: rotate(7deg) translateY(120%) translateX(6%); opacity: 0; }
+      }
+      .sheet-head {
+        background: var(--ink); color: var(--bg); padding: 14px 18px 12px;
+        display: flex; justify-content: space-between; align-items: baseline;
+      }
+      @media (prefers-color-scheme: dark) { .sheet-head { color: #0a0a0a; } }
+      .sheet-head .month { font-weight: 900; font-size: 22px; letter-spacing: .1em; text-transform: uppercase; }
+      .sheet-head .year { font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 18px; }
+      .spiral {
+        display: flex; justify-content: space-evenly; padding: 7px 0 1px;
+        border-bottom: 1px dashed var(--paper-line);
+      }
+      .spiral span { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink-faint); display: block; }
+      .sheet-body { text-align: center; padding: 16px 14px 20px; }
+      .sheet-body .dow {
+        font-family: "IBM Plex Mono", monospace; letter-spacing: .34em; text-transform: uppercase;
+        font-size: 13px; color: var(--ink-soft); text-indent: .34em;
+      }
+      .sheet-body .daynum { font-weight: 900; font-size: clamp(96px, 26vw, 150px); line-height: 1.02; }
+      .sheet-body .full-date { font-family: "IBM Plex Mono", monospace; font-size: 13.5px; color: var(--ink-soft); }
+      .sheet-body .day-count {
+        display: inline-block; margin-top: 10px; border: 1.5px solid var(--ink); border-radius: 999px;
+        padding: 3px 12px; font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+      }
+      .sheet-nav { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+      .sheet-nav .btn { flex: 1; white-space: nowrap; }
+
+      .month-card { padding: 18px; }
+      .month-card h3 {
+        margin: 0 0 4px; font-size: 17px; font-weight: 800; letter-spacing: .04em;
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .month-nav { display: flex; gap: 6px; }
+      .month-nav button {
+        width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--ink);
+        background: var(--surface); color: var(--ink); font-weight: 800; line-height: 1;
+      }
+      .grid-head, .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+      .grid-head span {
+        text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+        letter-spacing: .06em; color: var(--ink-faint); padding: 6px 0 3px; text-transform: uppercase;
+      }
+      .grid button {
+        position: relative; border: 1px solid transparent; background: transparent; color: var(--ink);
+        border-radius: 8px; padding: 8px 0 10px; font-family: "IBM Plex Mono", monospace;
+        font-size: 13.5px; font-weight: 600; min-height: 38px;
+      }
+      .grid button:hover { border-color: var(--line); }
+      .grid button.other { color: var(--ink-faint); opacity: .55; }
+      .grid button.today { border: 1.5px solid var(--ink); }
+      .grid button.selected { background: var(--ink); color: var(--bg); }
+      @media (prefers-color-scheme: dark) { .grid button.selected { color: #0a0a0a; } }
+      .grid button .dot {
+        position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+        width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .85;
+      }
+      .grid button .dot.open { background: var(--ink); }
+      .grid button.selected .dot { background: var(--bg); }
+      @media (prefers-color-scheme: dark) { .grid button.selected .dot { background: #0a0a0a; } }
+      .sunday { font-weight: 700; }
+
+      .items-card { padding: 20px; margin-top: 16px; }
+      .items-card h3 { margin: 0 0 2px; font-size: 17px; font-weight: 800; }
+      .items-card .sub { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; }
+      .item {
+        display: flex; gap: 10px; align-items: flex-start; padding: 11px 0;
+        border-top: 1px solid var(--line);
+      }
+      .item:first-of-type { border-top: 0; }
+      .item .check {
+        flex: none; width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--ink);
+        background: var(--surface); color: var(--bg); font-size: 14px; font-weight: 900;
+        display: flex; align-items: center; justify-content: center; line-height: 1; margin-top: 1px;
+      }
+      @media (prefers-color-scheme: dark) { .item .check { color: #0a0a0a; } }
+      .item .check.done { background: var(--ink); }
+      .item .body { flex: 1; min-width: 0; }
+      .item .title { font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
+      .item.done .title { text-decoration: line-through; color: var(--ink-faint); }
+      .item .meta { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+      .item .notes { font-size: 13.5px; color: var(--ink-soft); margin-top: 3px; overflow-wrap: anywhere; }
+      .item .del {
+        flex: none; border: 0; background: transparent; color: var(--ink-faint);
+        font-size: 18px; padding: 2px 6px; border-radius: 6px;
+      }
+      .item .del:hover { color: var(--ink); }
+      .tag {
+        display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 700;
+        letter-spacing: .08em; text-transform: uppercase; border: 1.5px solid var(--ink);
+        border-radius: 999px; padding: 1px 8px; margin-right: 6px; vertical-align: 1px;
+      }
+      .tag.t-due { background: var(--ink); color: var(--bg); }
+      @media (prefers-color-scheme: dark) { .tag.t-due { color: #0a0a0a; } }
+      .tag.t-event { background: var(--surface-2); }
+      .tag.t-reminder { border-style: dashed; }
+      .tag.t-task { background: var(--surface); }
+      .empty-note { color: var(--ink-faint); font-size: 14px; padding: 8px 0 2px; }
+
+      form.add-form {
+        border-top: 1px dashed var(--line); margin-top: 14px; padding-top: 16px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      }
+      form.add-form .full { grid-column: 1 / -1; }
+      form.add-form label {
+        display: flex; flex-direction: column; gap: 5px;
+        font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .14em;
+        text-transform: uppercase; color: var(--ink-faint);
+      }
+      form.add-form input, form.add-form select, form.add-form textarea {
+        border: 1.5px solid var(--line); border-radius: 9px; background: var(--surface);
+        padding: 9px 10px; font-size: 14.5px; font-family: "Archivo", sans-serif; text-transform: none; letter-spacing: 0;
+      }
+      form.add-form input:focus, form.add-form select:focus, form.add-form textarea:focus { border-color: var(--ink); outline: none; }
+      form.add-form textarea { resize: vertical; min-height: 38px; }
+
+      .upcoming { margin-top: 16px; padding: 20px; }
+      .upcoming h3 { margin: 0 0 6px; font-size: 17px; font-weight: 800; }
+      .up-row {
+        display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--line);
+      }
+      .up-row:first-of-type { border-top: 0; }
+      .up-row .when {
+        flex: none; width: 118px; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 700;
+      }
+      .up-row .when.overdue { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+      .up-row .what { flex: 1; min-width: 0; font-size: 14.5px; overflow-wrap: anywhere; }
+      .up-row .what .d { color: var(--ink-faint); font-family: "IBM Plex Mono", monospace; font-size: 11.5px; }
+
+      footer.foot {
+        margin-top: 34px; text-align: center; font-family: "IBM Plex Mono", monospace;
+        font-size: 12px; color: var(--ink-faint);
+      }
+      footer.foot a { color: var(--ink-soft); font-weight: 600; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .flap.flipping .leaf.top-leaf, .flap.flipping .leaf.bottom-leaf,
+        .sheet.tearing { animation-duration: .01s; }
+        .progress > div { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div class="brand">
+          <span class="word">Klok</span>
+          <span class="by">a product of <a href="https://mark8production.net" target="_blank" rel="noopener">Mark8</a></span>
+        </div>
+        <div class="live-date" id="liveDate">—</div>
+      </header>
+
+      <nav class="tabs" role="tablist" aria-label="Klok tools">
+        <button role="tab" id="tab-clock" aria-selected="true" aria-controls="panel-clock" data-tab="clock">Clock</button>
+        <button role="tab" id="tab-timer" aria-selected="false" aria-controls="panel-timer" data-tab="timer">Timer</button>
+        <button role="tab" id="tab-pomodoro" aria-selected="false" aria-controls="panel-pomodoro" data-tab="pomodoro">Pomodoro</button>
+        <button role="tab" id="tab-calendar" aria-selected="false" aria-controls="panel-calendar" data-tab="calendar">Calendar</button>
+      </nav>
+
+      <!-- ============ CLOCK ============ -->
+      <section class="panel active" id="panel-clock" role="tabpanel" aria-labelledby="tab-clock">
+        <div class="card clock-stage">
+          <div class="flip-row" id="flipRow" aria-label="Current time">
+            <div class="flip-unit">
+              <div class="flap" data-unit="h">
+                <div class="half top"><span>00</span></div>
+                <div class="half bottom"><span>00</span></div>
+                <div class="leaf top-leaf"><span>00</span></div>
+                <div class="leaf bottom-leaf"><span>00</span></div>
+              </div>
+              <div class="flip-label">Hours</div>
+            </div>
+            <div class="flip-sep" aria-hidden="true">:</div>
+            <div class="flip-unit">
+              <div class="flap" data-unit="m">
+                <div class="half top"><span>00</span></div>
+                <div class="half bottom"><span>00</span></div>
+                <div class="leaf top-leaf"><span>00</span></div>
+                <div class="leaf bottom-leaf"><span>00</span></div>
+              </div>
+              <div class="flip-label">Minutes</div>
+            </div>
+            <div class="flip-sep" aria-hidden="true">:</div>
+            <div class="flip-unit">
+              <div class="flap" data-unit="s">
+                <div class="half top"><span>00</span></div>
+                <div class="half bottom"><span>00</span></div>
+                <div class="leaf top-leaf"><span>00</span></div>
+                <div class="leaf bottom-leaf"><span>00</span></div>
+              </div>
+              <div class="flip-label">Seconds</div>
+            </div>
+            <div class="ampm" id="ampm" hidden>AM</div>
+          </div>
+          <div class="clock-controls">
+            <div class="seg" role="group" aria-label="Hour format">
+              <button id="fmt12" aria-pressed="false">12H</button>
+              <button id="fmt24" aria-pressed="true">24H</button>
+            </div>
+            <span class="tz-note" id="tzNote"></span>
+          </div>
+        </div>
+
+        <div class="world-row">
+          <div class="world"><span class="city">Kathmandu</span><span><span class="wtime" data-tz="Asia/Kathmandu">—</span><span class="wday" data-tzday="Asia/Kathmandu"></span></span></div>
+          <div class="world"><span class="city">Chicago</span><span><span class="wtime" data-tz="America/Chicago">—</span><span class="wday" data-tzday="America/Chicago"></span></span></div>
+          <div class="world"><span class="city">London</span><span><span class="wtime" data-tz="Europe/London">—</span><span class="wday" data-tzday="Europe/London"></span></span></div>
+        </div>
+      </section>
+
+      <!-- ============ TIMER ============ -->
+      <section class="panel" id="panel-timer" role="tabpanel" aria-labelledby="tab-timer">
+        <div class="card tool-card">
+          <div class="big-readout" id="timerReadout">00:00:00</div>
+          <div class="progress" aria-hidden="true"><div id="timerBar"></div></div>
+          <div class="status-line" id="timerStatus">Set a duration and press Start.</div>
+          <div class="time-inputs">
+            <label>Hours<input type="number" id="tH" min="0" max="99" value="0" inputmode="numeric" /></label>
+            <label>Minutes<input type="number" id="tM" min="0" max="59" value="5" inputmode="numeric" /></label>
+            <label>Seconds<input type="number" id="tS" min="0" max="59" value="0" inputmode="numeric" /></label>
+          </div>
+          <div class="presets" id="timerPresets">
+            <button data-min="1">1m</button>
+            <button data-min="5">5m</button>
+            <button data-min="10">10m</button>
+            <button data-min="15">15m</button>
+            <button data-min="25">25m</button>
+            <button data-min="30">30m</button>
+            <button data-min="60">1h</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="timerStart">Start</button>
+            <button class="btn" id="timerPause" disabled>Pause</button>
+            <button class="btn" id="timerReset">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ POMODORO ============ -->
+      <section class="panel" id="panel-pomodoro" role="tabpanel" aria-labelledby="tab-pomodoro">
+        <div class="card tool-card">
+          <div class="pomo-modes" role="group" aria-label="Pomodoro mode">
+            <button data-mode="focus" aria-pressed="true">Focus</button>
+            <button data-mode="short" aria-pressed="false">Short break</button>
+            <button data-mode="long" aria-pressed="false">Long break</button>
+          </div>
+          <div class="big-readout" id="pomoReadout">25:00</div>
+          <div class="progress" aria-hidden="true"><div id="pomoBar"></div></div>
+          <div class="dots" id="pomoDots" aria-label="Completed focus sessions">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="status-line" id="pomoStatus">Ready to focus.</div>
+          <div class="btn-row">
+            <button class="btn primary" id="pomoStart">Start</button>
+            <button class="btn" id="pomoPause" disabled>Pause</button>
+            <button class="btn" id="pomoReset">Reset</button>
+            <button class="btn" id="pomoSkip">Skip</button>
+          </div>
+          <div class="pomo-settings">
+            <label>Focus (min)<input type="number" id="pFocus" min="1" max="180" value="25" inputmode="numeric" /></label>
+            <label>Short (min)<input type="number" id="pShort" min="1" max="60" value="5" inputmode="numeric" /></label>
+            <label>Long (min)<input type="number" id="pLong" min="1" max="90" value="15" inputmode="numeric" /></label>
+            <label>Auto-start next
+              <button type="button" class="toggle-btn" id="pAuto" aria-pressed="false">Off</button>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CALENDAR ============ -->
+      <section class="panel" id="panel-calendar" role="tabpanel" aria-labelledby="tab-calendar">
+        <div class="cal-layout">
+          <div>
+            <div class="sheet-stage">
+              <div class="sheet" id="sheet">
+                <div class="sheet-head">
+                  <span class="month" id="sheetMonth">—</span>
+                  <span class="year" id="sheetYear">—</span>
+                </div>
+                <div class="spiral" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <div class="sheet-body">
+                  <div class="dow" id="sheetDow">—</div>
+                  <div class="daynum" id="sheetDay">—</div>
+                  <div class="full-date" id="sheetFull">—</div>
+                  <div><span class="day-count" id="sheetCount"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="sheet-nav">
+              <button class="btn small" id="prevDay">← Prev day</button>
+              <button class="btn small primary" id="tearBtn">Tear off sheet</button>
+              <button class="btn small" id="todayBtn">Today</button>
+            </div>
+
+            <div class="card items-card">
+              <h3 id="itemsTitle">On this day</h3>
+              <div class="sub" id="itemsSub"></div>
+              <div id="itemsList"></div>
+              <form class="add-form" id="addForm">
+                <label class="full">Title
+                  <input type="text" id="fTitle" required maxlength="120" placeholder="e.g. Assignment due, Dentist, Call mom…" />
+                </label>
+                <label>Type
+                  <select id="fType">
+                    <option value="due">Due date</option>
+                    <option value="event">Event</option>
+                    <option value="reminder">Reminder</option>
+                    <option value="task">Task</option>
+                  </select>
+                </label>
+                <label>Time (optional)
+                  <input type="time" id="fTime" />
+                </label>
+                <label class="full">Notes (optional)
+                  <textarea id="fNotes" maxlength="300" placeholder="Anything worth remembering about it"></textarea>
+                </label>
+                <button type="submit" class="btn primary full">Add to this day</button>
+              </form>
+            </div>
+          </div>
+
+          <div>
+            <div class="card month-card">
+              <h3><span id="gridTitle">Month</span>
+                <span class="month-nav">
+                  <button id="prevMonth" aria-label="Previous month">‹</button>
+                  <button id="nextMonth" aria-label="Next month">›</button>
+                </span>
+              </h3>
+              <div class="grid-head" aria-hidden="true">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+              </div>
+              <div class="grid" id="monthGrid"></div>
+            </div>
+
+            <div class="card upcoming">
+              <h3>Coming up</h3>
+              <div id="upcomingList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot">
+        Klok — flip clock, timer, pomodoro &amp; paper calendar. A product of
+        <a href="https://mark8production.net" target="_blank" rel="noopener">Mark8</a>.
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+        var $ = function (s, r) { return (r || document).querySelector(s); };
+        var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+        function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+        /* ---------- Sound (WebAudio beep) ---------- */
+        var audioCtx = null;
+        function beep(times) {
+          try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === "suspended") audioCtx.resume();
+            var t = audioCtx.currentTime;
+            for (var i = 0; i < (times || 3); i++) {
+              var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+              osc.type = "sine"; osc.frequency.value = 880;
+              gain.gain.setValueAtTime(0.0001, t + i * 0.28);
+              gain.gain.exponentialRampToValueAtTime(0.25, t + i * 0.28 + 0.02);
+              gain.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.28 + 0.22);
+              osc.connect(gain); gain.connect(audioCtx.destination);
+              osc.start(t + i * 0.28); osc.stop(t + i * 0.28 + 0.24);
+            }
+          } catch (e) { /* sound is optional */ }
+        }
+
+        /* ---------- Tabs ---------- */
+        var tabs = $$("nav.tabs button");
+        tabs.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            tabs.forEach(function (b) { b.setAttribute("aria-selected", b === btn ? "true" : "false"); });
+            $$("section.panel").forEach(function (p) { p.classList.toggle("active", p.id === "panel-" + btn.dataset.tab); });
+          });
+        });
+
+        /* ---------- Flip clock ---------- */
+        var use24 = true;
+        var units = {
+          h: { el: $('.flap[data-unit="h"]'), val: null },
+          m: { el: $('.flap[data-unit="m"]'), val: null },
+          s: { el: $('.flap[data-unit="s"]'), val: null }
+        };
+        function setFlap(u, newVal) {
+          if (u.val === newVal) return;
+          var oldVal = u.val === null ? newVal : u.val;
+          var top = $(".half.top span", u.el), bottom = $(".half.bottom span", u.el);
+          var leafTop = $(".leaf.top-leaf span", u.el), leafBottom = $(".leaf.bottom-leaf span", u.el);
+          top.textContent = newVal;
+          leafTop.textContent = oldVal;
+          leafBottom.textContent = newVal;
+          u.el.classList.remove("flipping");
+          void u.el.offsetWidth; /* restart animation */
+          u.el.classList.add("flipping");
+          setTimeout(function () {
+            bottom.textContent = newVal;
+            u.el.classList.remove("flipping");
+          }, 620);
+          u.val = newVal;
+        }
+        function initFlap(u, val) {
+          $(".half.top span", u.el).textContent = val;
+          $(".half.bottom span", u.el).textContent = val;
+          u.val = val;
+        }
+        var fmt12 = $("#fmt12"), fmt24 = $("#fmt24"), ampmEl = $("#ampm");
+        function setFormat(h24) {
+          use24 = h24;
+          fmt12.setAttribute("aria-pressed", String(!h24));
+          fmt24.setAttribute("aria-pressed", String(h24));
+          ampmEl.hidden = h24;
+          Object.keys(units).forEach(function (k) { units[k].val = null; });
+        }
+        fmt12.addEventListener("click", function () { setFormat(false); tickClock(true); });
+        fmt24.addEventListener("click", function () { setFormat(true); tickClock(true); });
+
+        try {
+          $("#tzNote").textContent = "Local time · " + (Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+        } catch (e) {}
+
+        var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        var DOWS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+        function tickClock(force) {
+          var now = new Date();
+          var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+          var dispH = h;
+          if (!use24) { ampmEl.textContent = h >= 12 ? "PM" : "AM"; dispH = h % 12; if (dispH === 0) dispH = 12; }
+          var hv = pad(dispH), mv = pad(m), sv = pad(s);
+          if (force || units.h.val === null) { initFlap(units.h, hv); initFlap(units.m, mv); initFlap(units.s, sv); }
+          else { setFlap(units.h, hv); setFlap(units.m, mv); setFlap(units.s, sv); }
+
+          $("#liveDate").textContent = DOWS[now.getDay()] + ", " + MONTHS[now.getMonth()] + " " + now.getDate() + ", " + now.getFullYear();
+
+          $$(".wtime").forEach(function (el) {
+            try {
+              el.textContent = new Intl.DateTimeFormat("en-GB", { timeZone: el.dataset.tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(now);
+            } catch (e) { el.textContent = "—"; }
+          });
+          $$(".wday").forEach(function (el) {
+            try {
+              el.textContent = new Intl.DateTimeFormat("en-US", { timeZone: el.dataset.tzday, weekday: "short", month: "short", day: "numeric" }).format(now);
+            } catch (e) { el.textContent = ""; }
+          });
+        }
+        tickClock(true);
+        setInterval(tickClock, 250);
+
+        /* ---------- Countdown engine ---------- */
+        function makeCountdown(opts) {
+          var total = 0, remaining = 0, endAt = 0, raf = null, running = false;
+          function render() { opts.onTick(remaining, total); }
+          function loop() {
+            remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+            render();
+            if (remaining <= 0) { running = false; cancelAnimationFrame(raf); opts.onDone(); return; }
+            raf = requestAnimationFrame(loop);
+          }
+          return {
+            set: function (secs) { total = secs; remaining = secs; render(); },
+            start: function () {
+              if (remaining <= 0) return false;
+              running = true; endAt = Date.now() + remaining * 1000;
+              cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+              return true;
+            },
+            pause: function () { running = false; cancelAnimationFrame(raf); render(); },
+            reset: function () { running = false; cancelAnimationFrame(raf); remaining = total; render(); },
+            isRunning: function () { return running; },
+            remaining: function () { return remaining; }
+          };
+        }
+        function fmtHMS(sec) { return pad(Math.floor(sec / 3600)) + ":" + pad(Math.floor(sec % 3600 / 60)) + ":" + pad(sec % 60); }
+        function fmtMS(sec) { return pad(Math.floor(sec / 60)) + ":" + pad(sec % 60); }
+
+        /* ---------- Timer ---------- */
+        var tH = $("#tH"), tM = $("#tM"), tS = $("#tS");
+        var timerStart = $("#timerStart"), timerPause = $("#timerPause"), timerReset = $("#timerReset");
+        var timerStatus = $("#timerStatus");
+        function timerInputSecs() {
+          var h = Math.min(99, Math.max(0, parseInt(tH.value, 10) || 0));
+          var m = Math.min(59, Math.max(0, parseInt(tM.value, 10) || 0));
+          var s = Math.min(59, Math.max(0, parseInt(tS.value, 10) || 0));
+          return h * 3600 + m * 60 + s;
+        }
+        var timer = makeCountdown({
+          onTick: function (rem, tot) {
+            $("#timerReadout").textContent = fmtHMS(rem);
+            $("#timerBar").style.width = tot > 0 ? ((tot - rem) / tot * 100) + "%" : "0%";
+          },
+          onDone: function () {
+            timerStatus.textContent = "Time's up.";
+            timerStart.disabled = false; timerPause.disabled = true;
+            beep(4);
+          }
+        });
+        function timerSyncFromInputs() { if (!timer.isRunning()) timer.set(timerInputSecs()); }
+        [tH, tM, tS].forEach(function (inp) { inp.addEventListener("change", timerSyncFromInputs); inp.addEventListener("input", timerSyncFromInputs); });
+        $$("#timerPresets button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var mins = parseInt(b.dataset.min, 10);
+            tH.value = Math.floor(mins / 60); tM.value = mins % 60; tS.value = 0;
+            timer.pause(); timer.set(timerInputSecs());
+            timerStart.disabled = false; timerPause.disabled = true;
+            timerStatus.textContent = "Set to " + b.textContent + ". Press Start.";
+          });
+        });
+        timerStart.addEventListener("click", function () {
+          timerSyncFromInputs();
+          if (timer.start()) {
+            timerStatus.textContent = "Running…";
+            timerStart.disabled = true; timerPause.disabled = false; timerPause.textContent = "Pause";
+          } else {
+            timerStatus.textContent = "Set a duration above zero first.";
+          }
+        });
+        timerPause.addEventListener("click", function () {
+          if (timer.isRunning()) {
+            timer.pause(); timerStatus.textContent = "Paused.";
+            timerPause.textContent = "Resume"; timerStart.disabled = true;
+          } else if (timer.remaining() > 0) {
+            timer.start(); timerStatus.textContent = "Running…";
+            timerPause.textContent = "Pause";
+          }
+        });
+        timerReset.addEventListener("click", function () {
+          timer.pause(); timer.set(timerInputSecs());
+          timerStatus.textContent = "Reset. Press Start when ready.";
+          timerStart.disabled = false; timerPause.disabled = true; timerPause.textContent = "Pause";
+        });
+        timer.set(timerInputSecs());
+
+        /* ---------- Pomodoro ---------- */
+        var pomoDur = { focus: 25 * 60, short: 5 * 60, long: 15 * 60 };
+        var pomoLabels = { focus: "Focus", short: "Short break", long: "Long break" };
+        var pomoMode = "focus", pomoSessions = 0, pomoAuto = false;
+        var pomoStatus = $("#pomoStatus");
+        var pomo = makeCountdown({
+          onTick: function (rem, tot) {
+            $("#pomoReadout").textContent = fmtMS(rem);
+            $("#pomoBar").style.width = tot > 0 ? ((tot - rem) / tot * 100) + "%" : "0%";
+          },
+          onDone: function () {
+            beep(4);
+            advancePomo(true);
+          }
+        });
+        function renderDots() {
+          $$("#pomoDots span").forEach(function (d, i) { d.classList.toggle("done", i < (pomoSessions % 4 || (pomoSessions > 0 && pomoSessions % 4 === 0 ? 4 : 0))); });
+        }
+        function setPomoMode(mode, autoStart) {
+          pomoMode = mode;
+          $$(".pomo-modes button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === mode)); });
+          pomo.pause(); pomo.set(pomoDur[mode]);
+          $("#pomoStart").disabled = false; $("#pomoPause").disabled = true; $("#pomoPause").textContent = "Pause";
+          pomoStatus.textContent = pomoLabels[mode] + " — " + Math.round(pomoDur[mode] / 60) + " minutes.";
+          if (autoStart) {
+            if (pomo.start()) {
+              pomoStatus.textContent = pomoLabels[mode] + " started automatically.";
+              $("#pomoStart").disabled = true; $("#pomoPause").disabled = false;
+            }
+          }
+        }
+        function advancePomo(finishedNaturally) {
+          var next;
+          if (pomoMode === "focus") {
+            pomoSessions++;
+            next = (pomoSessions % 4 === 0) ? "long" : "short";
+          } else {
+            next = "focus";
+          }
+          renderDots();
+          setPomoMode(next, pomoAuto && finishedNaturally);
+          if (!pomoAuto) pomoStatus.textContent = pomoLabels[pomoMode] + " is next. Press Start.";
+        }
+        $$(".pomo-modes button").forEach(function (b) {
+          b.addEventListener("click", function () { setPomoMode(b.dataset.mode, false); });
+        });
+        $("#pomoStart").addEventListener("click", function () {
+          if (pomo.start()) {
+            pomoStatus.textContent = pomoLabels[pomoMode] + " running…";
+            $("#pomoStart").disabled = true; $("#pomoPause").disabled = false; $("#pomoPause").textContent = "Pause";
+          }
+        });
+        $("#pomoPause").addEventListener("click", function () {
+          if (pomo.isRunning()) {
+            pomo.pause(); pomoStatus.textContent = "Paused.";
+            $("#pomoPause").textContent = "Resume"; $("#pomoStart").disabled = true;
+          } else if (pomo.remaining() > 0) {
+            pomo.start(); pomoStatus.textContent = pomoLabels[pomoMode] + " running…";
+            $("#pomoPause").textContent = "Pause";
+          }
+        });
+        $("#pomoReset").addEventListener("click", function () { setPomoMode(pomoMode, false); });
+        $("#pomoSkip").addEventListener("click", function () { advancePomo(false); });
+        function bindPomoInput(id, key) {
+          $(id).addEventListener("change", function () {
+            var v = Math.max(1, parseInt($(id).value, 10) || 1);
+            $(id).value = v;
+            pomoDur[key] = v * 60;
+            if (pomoMode === key && !pomo.isRunning()) pomo.set(pomoDur[key]);
+          });
+        }
+        bindPomoInput("#pFocus", "focus"); bindPomoInput("#pShort", "short"); bindPomoInput("#pLong", "long");
+        var autoBtn = $("#pAuto");
+        autoBtn.addEventListener("click", function () {
+          pomoAuto = !pomoAuto;
+          autoBtn.setAttribute("aria-pressed", String(pomoAuto));
+          autoBtn.textContent = pomoAuto ? "On" : "Off";
+        });
+        pomo.set(pomoDur.focus);
+        renderDots();
+
+        /* ---------- Calendar ---------- */
+        function dayKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+        function startOfDay(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+        function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+
+        var today = startOfDay(new Date());
+        var selected = new Date(today);
+        var gridCursor = new Date(today.getFullYear(), today.getMonth(), 1);
+        var items = {}; /* dayKey -> [{id, title, type, time, notes, done}] */
+        var nextId = 1;
+        var tearing = false;
+
+        var TYPE_LABEL = { due: "Due date", event: "Event", reminder: "Reminder", task: "Task" };
+
+        function itemsFor(key) { return items[key] || []; }
+        function relativeLabel(date) {
+          var diff = Math.round((startOfDay(date) - today) / 86400000);
+          if (diff === 0) return "Today";
+          if (diff === 1) return "Tomorrow";
+          if (diff === -1) return "Yesterday";
+          if (diff < 0) return Math.abs(diff) + " days overdue";
+          return "In " + diff + " days";
+        }
+
+        function renderSheet() {
+          $("#sheetMonth").textContent = MONTHS[selected.getMonth()];
+          $("#sheetYear").textContent = selected.getFullYear();
+          $("#sheetDow").textContent = DOWS[selected.getDay()];
+          $("#sheetDay").textContent = selected.getDate();
+          $("#sheetFull").textContent = DOWS[selected.getDay()] + ", " + MONTHS[selected.getMonth()] + " " + selected.getDate() + ", " + selected.getFullYear();
+          var doy = Math.floor((startOfDay(selected) - new Date(selected.getFullYear(), 0, 0)) / 86400000);
+          $("#sheetCount").textContent = "Day " + doy + " of " + selected.getFullYear() + " · " + relativeLabel(selected);
+        }
+
+        function renderGrid() {
+          var y = gridCursor.getFullYear(), mo = gridCursor.getMonth();
+          $("#gridTitle").textContent = MONTHS[mo] + " " + y;
+          var grid = $("#monthGrid");
+          grid.innerHTML = "";
+          var first = new Date(y, mo, 1);
+          var start = addDays(first, -first.getDay());
+          for (var i = 0; i < 42; i++) {
+            var d = addDays(start, i);
+            var key = dayKey(d);
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = d.getDate();
+            if (d.getDay() === 0) btn.classList.add("sunday");
+            if (d.getMonth() !== mo) btn.classList.add("other");
+            if (dayKey(d) === dayKey(today)) btn.classList.add("today");
+            if (dayKey(d) === dayKey(selected)) btn.classList.add("selected");
+            btn.setAttribute("aria-label", MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear());
+            var dayItems = itemsFor(key);
+            if (dayItems.length) {
+              var dot = document.createElement("span");
+              dot.className = "dot" + (dayItems.some(function (it) { return !it.done; }) ? " open" : "");
+              btn.appendChild(dot);
+            }
+            (function (date) {
+              btn.addEventListener("click", function () { selectDay(new Date(date), true); });
+            })(d);
+            grid.appendChild(btn);
+          }
+        }
+
+        function fmtTime(t) {
+          if (!t) return "";
+          var parts = t.split(":"), hh = parseInt(parts[0], 10), mm = parts[1];
+          var ap = hh >= 12 ? "PM" : "AM"; var h12 = hh % 12; if (h12 === 0) h12 = 12;
+          return h12 + ":" + mm + " " + ap;
+        }
+
+        function renderItems() {
+          var key = dayKey(selected);
+          $("#itemsTitle").textContent = MONTHS[selected.getMonth()] + " " + selected.getDate() + " — " + relativeLabel(selected);
+          $("#itemsSub").textContent = DOWS[selected.getDay()] + ", " + selected.getFullYear();
+          var list = $("#itemsList");
+          list.innerHTML = "";
+          var dayItems = itemsFor(key).slice().sort(function (a, b) {
+            return (a.time || "99:99").localeCompare(b.time || "99:99");
+          });
+          if (!dayItems.length) {
+            var p = document.createElement("p");
+            p.className = "empty-note";
+            p.textContent = "Nothing on this day yet. Add a due date, event, reminder, or task below.";
+            list.appendChild(p);
+          }
+          dayItems.forEach(function (it) {
+            var row = document.createElement("div");
+            row.className = "item" + (it.done ? " done" : "");
+            var check = document.createElement("button");
+            check.type = "button";
+            check.className = "check" + (it.done ? " done" : "");
+            check.textContent = it.done ? "✓" : "";
+            check.setAttribute("aria-label", it.done ? "Mark not done: " + it.title : "Mark done: " + it.title);
+            check.addEventListener("click", function () { it.done = !it.done; renderAll(); });
+            var body = document.createElement("div");
+            body.className = "body";
+            var title = document.createElement("div");
+            title.className = "title";
+            var tag = document.createElement("span");
+            tag.className = "tag t-" + it.type;
+            tag.textContent = TYPE_LABEL[it.type];
+            title.appendChild(tag);
+            title.appendChild(document.createTextNode(it.title));
+            body.appendChild(title);
+            if (it.time) {
+              var meta = document.createElement("div");
+              meta.className = "meta";
+              meta.textContent = fmtTime(it.time);
+              body.appendChild(meta);
+            }
+            if (it.notes) {
+              var notes = document.createElement("div");
+              notes.className = "notes";
+              notes.textContent = it.notes;
+              body.appendChild(notes);
+            }
+            var del = document.createElement("button");
+            del.type = "button";
+            del.className = "del";
+            del.textContent = "×";
+            del.setAttribute("aria-label", "Delete: " + it.title);
+            del.addEventListener("click", function () {
+              items[key] = itemsFor(key).filter(function (x) { return x.id !== it.id; });
+              renderAll();
+            });
+            row.appendChild(check); row.appendChild(body); row.appendChild(del);
+            list.appendChild(row);
+          });
+        }
+
+        function renderUpcoming() {
+          var wrap = $("#upcomingList");
+          wrap.innerHTML = "";
+          var flat = [];
+          Object.keys(items).forEach(function (key) {
+            items[key].forEach(function (it) {
+              if (!it.done) flat.push({ key: key, it: it });
+            });
+          });
+          flat.sort(function (a, b) { return a.key.localeCompare(b.key) || (a.it.time || "99:99").localeCompare(b.it.time || "99:99"); });
+          if (!flat.length) {
+            var p = document.createElement("p");
+            p.className = "empty-note";
+            p.textContent = "Nothing coming up. Open items you add will appear here.";
+            wrap.appendChild(p);
+            return;
+          }
+          flat.slice(0, 12).forEach(function (entry) {
+            var parts = entry.key.split("-");
+            var date = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            var row = document.createElement("div");
+            row.className = "up-row";
+            var when = document.createElement("span");
+            when.className = "when" + (startOfDay(date) < today ? " overdue" : "");
+            when.textContent = relativeLabel(date);
+            var what = document.createElement("span");
+            what.className = "what";
+            what.appendChild(document.createTextNode(entry.it.title));
+            var d = document.createElement("span");
+            d.className = "d";
+            d.textContent = " · " + MONTHS[date.getMonth()].slice(0, 3) + " " + date.getDate() + (entry.it.time ? " · " + fmtTime(entry.it.time) : "");
+            what.appendChild(d);
+            row.appendChild(when); row.appendChild(what);
+            row.addEventListener("click", function () { selectDay(new Date(date), true); });
+            row.style.cursor = "pointer";
+            wrap.appendChild(row);
+          });
+        }
+
+        function renderAll() { renderSheet(); renderGrid(); renderItems(); renderUpcoming(); }
+
+        function selectDay(date, syncGrid) {
+          selected = startOfDay(date);
+          if (syncGrid) gridCursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
+          renderAll();
+        }
+
+        $("#tearBtn").addEventListener("click", function () {
+          if (tearing) return;
+          tearing = true;
+          var sheet = $("#sheet");
+          sheet.classList.add("tearing");
+          setTimeout(function () {
+            selectDay(addDays(selected, 1), true);
+            sheet.classList.remove("tearing");
+            tearing = false;
+          }, 640);
+        });
+        $("#prevDay").addEventListener("click", function () { selectDay(addDays(selected, -1), true); });
+        $("#todayBtn").addEventListener("click", function () { selectDay(new Date(today), true); });
+        $("#prevMonth").addEventListener("click", function () {
+          gridCursor = new Date(gridCursor.getFullYear(), gridCursor.getMonth() - 1, 1); renderGrid();
+        });
+        $("#nextMonth").addEventListener("click", function () {
+          gridCursor = new Date(gridCursor.getFullYear(), gridCursor.getMonth() + 1, 1); renderGrid();
+        });
+
+        $("#addForm").addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var title = $("#fTitle").value.trim();
+          if (!title) return;
+          var key = dayKey(selected);
+          if (!items[key]) items[key] = [];
+          items[key].push({
+            id: nextId++,
+            title: title,
+            type: $("#fType").value,
+            time: $("#fTime").value || "",
+            notes: $("#fNotes").value.trim(),
+            done: false
+          });
+          $("#fTitle").value = ""; $("#fTime").value = ""; $("#fNotes").value = "";
+          renderAll();
+          $("#fTitle").focus();
+        });
+
+        renderAll();
+      })();
+    </script>
+  </body>
+</html>
